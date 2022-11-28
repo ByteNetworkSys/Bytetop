@@ -183,7 +183,20 @@ modules.actions = function() {
           }]);
         }
         function editPost() {
+          let postUI = `<div contenteditable="true" id="editPost">${post.getAttribute("text")}</div>`
+          showPopUp("Edit Post", postUI, [["Save", "var(--premiumColor)", async function() {
+            post.style.opacity = "0.5";
+            let editedText = findI("editPost").textContent;
 
+            let [code, response] = await sendRequest("POST", `posts/edit?postID=${post.id} `, { text: editedText });
+            
+            if (code == 200) {
+              post.setAttribute("text", editedText);
+            } else {
+              showPopUp("An Error Occured", response, [["OK", "var(--grayColor)"]]);
+            }
+            post.style.opacity = "1";
+          }], ["Cancel", "var(--grayColor)"]]);
         }
         function deletePost() {
           showPopUp("Delete Post?", "Are you sure you want to <b>permanently</b> delete this post?", [["Delete", "#FF5C5C", async function() {

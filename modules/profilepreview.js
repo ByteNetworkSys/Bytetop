@@ -4,7 +4,7 @@ function updateProfileSub() {
   let query = { task: "profile", _id: Object.keys(recentUsers) };
   if (userID != null) {
     query._id.push(userID);
-    query.token = JSON.parse(localStorage.getItem("token")).token.substring(0, 15);
+    query.token = account.Realtime;
   }
   if (userUpdateSub != null) {
     userUpdateSub.edit(query);

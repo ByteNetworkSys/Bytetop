@@ -1,6 +1,6 @@
 modules.modal = function(title, content, buttons) {
   let modalID = Math.floor(Math.random()*100000000);
-  let modalHTML = `<div class="modalTitle" id="modalTitle${modalID}">${title}</div><div class="modalText" id="modalText${modalID}">${content}</div><div class="modalButtons" id="modalButtons${modalID}"></div>`;
+  let modalHTML = `<div class="modalTitle" id="modalTitle${modalID}">${title}</div><div id="modalText${modalID}">${content}</div><div class="modalButtons" id="modalButtons${modalID}"></div>`;
   let backBlur = createElement("backBlur", "div", "body");
   backBlur.id = "backBlur" + modalID;
   let newModal = createElement("modal", "div", backBlur);

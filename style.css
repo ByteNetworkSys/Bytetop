@@ -32,6 +32,7 @@ html {
   color: var(--fontColor);
   font-family: var(--mainFont);
   font-size: 18px;
+  overflow-wrap: anywhere;
   background-attachment: fixed;
   background-position: center;
   background-repeat: no-repeat;
@@ -129,7 +130,7 @@ html {
   margin-bottom: 8px;
   padding: 12px;
   text-align: center;
-  font-family: 'Poppins';
+  font-family: var(--secondFont);
   font-weight: 400;
   color: var(--themeColor);
   background: var(--contentColor);
@@ -1035,12 +1036,52 @@ button:active {
   transform: scale(0.9);
   transition: transform 0.2s;
 }
+.modal.exotek {
+  display: flex;
+  flex-direction: column;
+  width: 1000px;
+  height: 650px;
+  border: none;
+  color: #000;
+  font-family: var(--secondFont);
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+.closeModal{
+  position: absolute;
+  display: flex;
+  width: 24px;
+  height: 24px;
+  right: 4px;
+  top: 4px;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 100%;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 22px;
+  transition: 0.1s;
+  font-weight: normal;
+  color: white;
+}
 .modalTitle {
   font-weight: bold;
   font-size: 30px;
 }
+.modalTitle.exotek {
+  padding: 4px;
+  background: #fff;
+  font-size: 15px;
+  font-weight: bold;
+}
 .modalContent {
   font-size: 15px;
+}
+.modalTextExotek {
+  position: relative;
+  flex: 1;
 }
 .modalButtons {
   margin-top: 8px;
@@ -1051,6 +1092,13 @@ button:active {
   border-radius: 8px;
   margin-top: 4px;
   line-height: unset;
+}
+.exotekIFrame {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: none;
+  overflow: scroll;
 }
 .dropdown {
   position: fixed;
@@ -1509,7 +1557,7 @@ input[type="radio"]:checked + .radioLabel:before, input[type="checkbox"]:checked
   background: var(--contentColor3);
   padding: 8px;
   min-height: 40px;
-  max-height: 150px;
+  max-height: 220px;
   word-wrap: break-word;
   overflow-y: auto;
   overflow-x: hidden;
@@ -1521,7 +1569,7 @@ input[type="radio"]:checked + .radioLabel:before, input[type="checkbox"]:checked
 }
 #profileDescription {
   flex: 1;
-  height: 130px;
+  height: 220px;
   margin-top: 4px;
   font-size: 16px;
   line-height: 16px;
@@ -1544,6 +1592,65 @@ input[type="radio"]:checked + .radioLabel:before, input[type="checkbox"]:checked
 }
 .settingsPfpHolder {
   margin: -50px 0px 0px 12px;
+}
+
+#exotekAccount {
+	display:flex;
+	padding:8px;
+	flex-direction:column;
+	flex-wrap:wrap;
+}
+
+#exotekButtons {
+	display:flex;
+	width:100%;
+	flex-wrap:wrap;
+	margin-top:4px;
+}
+#exotekButtons button {
+	border-radius:8px;
+	height:fit-content;
+	padding:8px;
+	margin:4px;
+	flex: 1 1 140px;
+}
+#exotekManageButton {
+	margin: 4px 2px 4px 4px;
+	background-color:#FF008A;
+}
+#exotekTransferButton {
+	margin: 4px 4px 4px 2px;
+	background-color:var(--borderColor);
+}
+
+#exotekUser {
+	display:inline-flex;
+	flex-wrap:wrap;
+	justify-content:center;
+}
+#exotekInfo {
+	display:flex;
+	margin: auto 0px auto 8px;
+	padding: 3px;
+	flex-direction:column;
+}
+#exotekUser img {
+	width:80px;
+	height:80px;
+	border:solid;
+	border-width:3px;
+	border-color:var(--borderColor);
+	border-radius:50%;
+}
+#exotekUsername {
+	font-weight:bold;
+	font-size:20px;
+}
+#exotekEmail {
+	margin-top:5px;
+	
+	font-size:15px;
+	font-color:#545454;
 }
 
 .settingsLink {
@@ -1625,12 +1732,11 @@ input[type="radio"]:checked + .radioLabel:before, input[type="checkbox"]:checked
   font-size: 28px;
   line-height: 28px;
   transition: 0.1s;
-}
-.zoomedImageClose:hover {
-  transform: rotate(90deg);
+  font-weight: normal;
+  color: white;
 }
 .zoomedImageClose:active {
-  transform: rotate(90deg) scale(0.95);
+  transform: scale(0.95);
 }
 .roleEmoji {
   border-radius: 6px;
@@ -1652,9 +1758,6 @@ input[type="radio"]:checked + .radioLabel:before, input[type="checkbox"]:checked
 }
 .hidden {
   display: none;
-}
-#settingsEmail {
-  margin-bottom: 6px;
 }
 #socialRow .profileSocialButton {
   margin: 3px 3px 0px 0px;
@@ -1776,30 +1879,6 @@ input[type="radio"]:checked + .radioLabel:before, input[type="checkbox"]:checked
   border-radius: 12px;
   overflow: hidden;
 }
-.sessionTile {
-  display: flex;
-  flex-wrap: wrap;
-  padding: 6px;
-  margin-top: 8px;
-  align-items: center;
-  background: var(--contentColor);
-  border-radius: 12px;
-  overflow: hidden;
-}
-.sessionTileInfo{
-  display:block;
-}
-.sessionTileTime{
-  display:block;
-  font-size:16px;
-  color:#bbb;
-}
-.signOutSessionButton {
-  height:32px;
-  margin: 0px 0px 0px auto;
-  border-radius: 8px;
-  line-height: 20px;
-}
 .embedHolder {
   position: relative;
   display: flex;
@@ -1837,37 +1916,7 @@ a {
   font-size: 16px;
   text-align: center;
 }
-#signUpEmail {
-  margin-top: 6px;
-  padding: 20px 12px 20px 12px;
-  font-size: 18px;
-}
-#signUpUsername {
-  margin-top: 12px;
-  padding: 20px 12px 20px 12px;
-  font-size: 18px;
-}
-#signUpPassword {
-  margin-top: 6px;
-  padding: 20px 12px 20px 12px;
-  font-size: 18px;
-}
-#signInUsername {
-  margin-top: 6px;
-  padding: 20px 12px 20px 12px;
-  font-size: 18px;
-}
-#signInPassword {
-  margin-top: 6px;
-  padding: 20px 12px 20px 12px;
-  font-size: 18px;
-}
 
-#captchaHolder {
-  display: flex;
-  margin-top: 12px;
-  justify-content: center;
-}
 input[type="date"] {
   background: transparent;
   font-family: inherit;
@@ -2522,4 +2571,9 @@ td {
 .chatEditingSvg {
   width: 18px;
   height: 18px;
+}
+#editPost {
+  background: var(--contentColor2);
+  padding: 4px;
+  border-radius: 4px;
 }

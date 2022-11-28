@@ -25,6 +25,7 @@ let roleTypes = {
   "Verified": ["📢", {}, "#A2494F"],
   "Partner": ["📷", {}, "#395568"],
   "Tester": ["🧪", {}, "#288887"],
+  "Bot": ["🤖", {}, "#E01212"],
   "Premium": ["🌟", {}, "#A8A87B"]
 };
 let roleKeyTypes = Object.keys(roleTypes);
@@ -170,15 +171,9 @@ window.addEventListener("hashchange", function() {
   setPage(pageName);
 });
 
-let currentlyLoadingModules = {};
 async function getModule(name) {
   if (modules[name] == null) {
-    if (currentlyLoadingModules[name] != null) {
-      return;
-    }
-    currentlyLoadingModules[name] = "";
     await loadScript("./modules/" + name + ".js");
-    delete currentlyLoadingModules[name];
   }
   return modules[name];
 }
@@ -225,11 +220,19 @@ function getScript(url) {
 async function loadScript(url) {
   return new Promise(function(resolve) {
     let loaded = getScript(url);
-    if (loaded != null) {
-      loaded.remove();
+    if (loaded) {
+      if (loaded.hasAttribute("done")) {
+        resolve(loaded);
+      } else {
+        loaded.addEventListener("load", function() {
+          resolve(loaded);
+        });
+      }
+      return;
     }
     let newScript = document.createElement('script');
     newScript.addEventListener("load", function() {
+      newScript.setAttribute("done", "");
       resolve(newScript);
     });
     newScript.src = url;
@@ -256,6 +259,29 @@ let epochOffset = 0;
 function getEpoch() {
   return Date.now() + epochOffset;
 }
+async function renewToken() {
+  let token = localStorage.getItem("token");
+  if (token == null) {
+    return;
+  }
+  let refreshToken = await fetch(serverURL + "auth/renew", {
+    method: "POST",
+    headers: {
+      "cache": "no-cache",
+      "Content-Type": "text/plain"
+    },
+    body: JSON.stringify({ userid: localStorage.getItem("userID"), refresh: JSON.parse(token).refresh })
+  });
+  if (refreshToken.status == 200) {
+    let refreshData = JSON.parse(await refreshToken.text());
+    localStorage.setItem("token", JSON.stringify(refreshData.token));
+    account.Realtime = refreshData.realtime;
+  } else if (refreshToken.status == 404) {
+    localStorage.removeItem("userID");
+    localStorage.removeItem("token");
+    location.reload();
+  }
+}
 let sentFirstReq = false;
 async function sendRequest(method, path, body, noFileType) {
   if (account.banned == true && path != "mod/appeal") {
@@ -267,7 +293,7 @@ async function sendRequest(method, path, body, noFileType) {
     let sendData = {
       method: method,
       headers: {
-        cache: "no-cache"
+        "cache": "no-cache"
       }
     };
     if (noFileType != true) {
@@ -282,8 +308,12 @@ async function sendRequest(method, path, body, noFileType) {
     let token = localStorage.getItem("token");
     if (token != null) {
       token = JSON.parse(token);
-      if (token.expires > Math.floor(Date.now() / 1000)) {
-        sendData.headers.auth = localStorage.getItem("userID") + ";" + token.token;
+      if (token.expires < Math.floor(getEpoch() / 1000)) {
+        await renewToken();
+      }
+      let sendUserID = localStorage.getItem("userID");
+      if (sendUserID != null) {
+        sendData.headers.auth = sendUserID + ";" + token.session;
       }
     }
     let response = await fetch(serverURL + path, sendData);
@@ -370,13 +400,19 @@ function setAccountSub(location) {
   let query = { task: "general", location: setLocation };
   if (userID != null) {
     query.userID = userID;
-    query.token = JSON.parse(localStorage.getItem("token")).token.substring(0, 15);
+    query.token = account.Realtime;
     query.groups = Object.keys(groups);
   }
   if (accountSubscribe != null) {
     accountSubscribe.edit(query);
   } else {
     accountSubscribe = socket.subscribe(query, async function(data) {
+      if (data.realtime != null) {
+        account.Realtime = data.realtime;
+        setAccountSub();
+        updateProfileSub();
+        return;
+      }
       switch (data.type) {
         case "newpost":
           if (data.post.UserID == userID) {
@@ -428,7 +464,7 @@ function setAccountSub(location) {
             ending = "s";
           }
           refreshPosts.innerHTML = "Show <b>" + newPostCount + "</b> Post" + ending;
-          tempListen(refreshPosts, "click", fetchNewPosts);
+          tempListen(refreshPosts, "click", function() { fetchNewPosts(); });
           break;
         case "checked":
           let groupSeen = groups[data._id];
@@ -647,8 +683,16 @@ findI("logoutB").addEventListener("click", function() {
   }], ["Cancel", "var(--grayColor)"]]);
 });
 
+async function loadNeededModules() {
+  window.showPopUp = await getModule("modal");
+  window.webModal = await getModule("webmodal");
+  window.showDropdown = await getModule("dropdown");
+  window.showPreview = await getModule("profilepreview");
+}
+
 let alreadyInit = false;
 async function init() {
+  loadNeededModules();
   if (localStorage.getItem("token") != null) {
     await auth();
   }
@@ -657,9 +701,7 @@ async function init() {
   }
   alreadyInit = true;
 
-  window.showPopUp = await getModule("modal");
-  window.showDropdown = await getModule("dropdown");
-  window.showPreview = await getModule("profilepreview");
+  await loadNeededModules();
 
   if (userID != null) {
     if (getParam("post") != null) {
@@ -712,10 +754,10 @@ async function init() {
     </button>
     `;
     findC("signUpButton").addEventListener("click", function() {
-      signUpModal();
+      openLoginModal("signup", "Create Account");
     });
     findC("signInButton").addEventListener("click", function() {
-      signInModal();
+      openLoginModal("signin", "Sign In");
     });
     if (findC("pageHolder") != null) {
       main.insertBefore(signInUpBar, findC("pageHolder"));
@@ -726,6 +768,11 @@ async function init() {
   (await getModule("actions"))();
 }
 
+async function openLoginModal(page, title) {
+  (await getModule("webmodal"))("https://exotek.co/login?client_id=62f8fac716d8eb8d2f6562ef&redirect_uri=https%3A%2F%2F" + window.location.host + "&response_type=code&scope=userinfo#" + page, title);
+}
+
+/*
 let signInPopUp;
 async function signIn() {
   let [code, response] = await sendRequest("POST", "temp/signin?ss=" + socket.secureID, { username: findI("signInUsername").value, password: findI("signInPassword").value });
@@ -809,6 +856,50 @@ function setCaptchaExpired() {
     hcaptcha.reset();
   }
 }
+*/
+
+window.addEventListener("message", async (event) => {
+  if (event.source == window.loginWindow) {
+    if (event.data == "oauth_embed_integration") {
+      event.source.postMessage("subscribe_oauth_finish", "*");
+    } else if (event.origin === "https://exotek.co") {
+      let parsedData = JSON.parse(event.data);
+      if (parsedData.type == "oauth_finish") {
+        let authCode = parsedData.code;
+        let authState = parsedData.state;
+        // Send request to verify code
+        console.log(authCode, authState);
+        findI("exotekBlur").style.opacity = 0;
+        findI("exotekBlur").children[0].style.transform = "scale(0.9)";
+        setTimeout(function () {
+          findI("exotekBlur").remove();
+        }, 200);
+        if (authCode != null) {
+          if (authState == null) {
+            let [code, response] = await sendRequest("POST", "auth", { code: authCode });
+            if (code == 200) {
+              updateToSignedIn(response);
+            } else {
+              showPopUp("An Error Occured", response, [["Okay", "var(--grayColor)"]]);
+            }
+          } else {
+            let [code, response] = await sendRequest("POST", "auth/transfer", { code: authCode });
+            if (code == 200) {
+              let data = JSON.parse(response);
+              account.Email = data.Email;
+              account.Exotek = data.Exotek;
+              refreshPage();
+              showPopUp("Trasfered Accounts", "You will now use your Exotek account:</br><b>" + account.Exotek.user + "</b> <i>(" + account.Email + ")</i></br>when logging into Photop.", [["Okay", "var(--grayColor)"]]);
+            } else {
+              showPopUp("An Error Occured", response, [["Okay", "var(--grayColor)"]]);
+            }
+          }
+        }
+      }
+    }
+  }
+});
+
 
 function hasPremium() {
   if (account.Premium != null && Date.parse(new Date(getEpoch()).toISOString()) < Date.parse(account.Premium.Expires)) {
@@ -828,11 +919,19 @@ async function updateToSignedIn(response) {
   account = data.user;
   groups = data.groups || {};
   userID = account._id;
+  await loadNeededModules();
+  if (account.Onboarding) {
+    showPopUp("Complete Sign Up", `<input id="inputOnboardPfp" type="file" accept="image/*" hidden="true"><span class="settingsTitle">Username</span><input type="text" placeholder="Username" class="settingsInput" id="inputName" value="${account.Exotek.Name || ""}"><span class="settingsTitle">Profile Picture</span><div class="groupIconCreate">
+          <img class="groupIconCreateHolder" ${account.Exotek.Image != null ? `src="${account.Exotek.Image}"` : ""}>
+          <div class="settingsUploadButton"></div>
+        </div>`, [["Sign Up", "var(--signUpColor)"]]);
+    return;
+  }
   if (data.token != null) {
     // If function was called from signin/signup:
     localStorage.setItem("userID", data.user._id);
     localStorage.setItem("token", JSON.stringify(data.token));
-    setPage("home");
+    refreshPage();
     let sidebarButtonsChilds = sidebarButtons.children;
     for (let i = 0; i < sidebarButtonsChilds.length; i++) {
       sidebarButtonsChilds[i].classList.remove("hidden");
@@ -1850,6 +1949,11 @@ function getRoleHTML(roleUser, max) {
     if (roleUser.Premium != null && Date.parse(new Date(getEpoch()).toISOString()) < Date.parse(roleUser.Premium.Expires)) {
       roles.push("Premium");
     }
+    switch (roleUser._id) {
+      /*case "60bd0243edf9d8003785ad79":
+        roles.unshift("Owner");
+        break;*/
+    }
     for (let i = 0; i < Math.min(roles.length, maxRoles); i++) {
       roleHTML += `<span class="roleEmoji" style="background: linear-gradient(315deg, #505068, ${roleTypes[roles[i]][2]})" title="${roles[i]}">${roleTypes[roles[i]][0]}</span> `;
       /*
@@ -1885,7 +1989,7 @@ function checkPermision(roles, permision) {
 }
 
 function promptLogin(desc) {
-  showPopUp("It's Better Together", desc, [["Sign Up", "var(--signUpColor)", function() { signUpModal() }], ["Sign In", "var(--signInColor)", function() { signInModal() }], ["Later", "var(--grayColor)"]]);
+  showPopUp("It's Better Together", desc, [["Sign Up", "var(--signUpColor)", function() { openLoginModal("signup", "Create Account"); }], ["Sign In", "var(--signInColor)", function() { openLoginModal("signin", "Sign In"); }], ["Later", "var(--grayColor)"]]);
 }
 
 let socialLinkData = {
@@ -2010,7 +2114,9 @@ function formatUsername(input) {
   return input.replace(/[^A-Za-z0-9_\-]/g, "").substring(0, 20);
 }
 function verifyUsername(input) {
-  return ((formatUsername(input).length >= 3) && formatUsername(input) == input);
+  let premium = hasPremium();
+  let limit = premium ? 1 : 3
+  return ((formatUsername(input).length >= limit) && formatUsername(input) == input);
 }
 function setCSSVar(variable, newValue) {
   let root = document.documentElement;
