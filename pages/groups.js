@@ -136,7 +136,6 @@ pages.groups = function() {
         let file = e.target.files[0];
         if (file.type.substring(0, 6) == "image/") {
           if (supportedImageTypes.includes(file.type.replace(/image\//g, "")) == true) {
-            alert(file.type)
             let premium = hasPremium()
             if (file.size < 2097153 || (file.size < 2097153 * 2 && premium)) { // 2 MB
               if (imageHolder.src != null) {

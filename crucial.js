@@ -25,7 +25,7 @@ let roleTypes = {
   "Verified": ["📢", {}, "#A2494F"],
   "Partner": ["📷", {}, "#395568"],
   "Tester": ["🧪", {}, "#288887"],
-  "Bot": ["🤖", {}, "#E01212"],
+  "Bot": ["🤖", {}, "#8B3945"],
   "Premium": ["🌟", {}, "#A8A87B"]
 };
 let roleKeyTypes = Object.keys(roleTypes);
@@ -679,7 +679,7 @@ async function auth() {
 
 findI("logoutB").addEventListener("click", function() {
   showPopUp("Are You Sure?", "Are you sure you want to log out?", [["Logout", "var(--themeColor)", function() {
-    sendRequest("PUT", "me/logout");
+    sendRequest("PUT", "auth/logout");
   }], ["Cancel", "var(--grayColor)"]]);
 });
 
@@ -716,7 +716,7 @@ async function init() {
       setPage("group");
     } else if (window.location.hash == "") {
       setPage("home");
-    } else if (userID != null) {
+    } else {
       setPage(window.location.hash.substring(1));
     }
     updateProfileSub();
@@ -739,6 +739,8 @@ async function init() {
       setPage("profile");
     } else if (getParam("j") != null || getParam("group") != null) {
       setPage("group");
+    } else if (window.location.hash == "#migrate") {
+      setPage("migrate");
     } else {
       setPage("home");
     }
@@ -867,8 +869,6 @@ window.addEventListener("message", async (event) => {
       if (parsedData.type == "oauth_finish") {
         let authCode = parsedData.code;
         let authState = parsedData.state;
-        // Send request to verify code
-        console.log(authCode, authState);
         findI("exotekBlur").style.opacity = 0;
         findI("exotekBlur").children[0].style.transform = "scale(0.9)";
         setTimeout(function () {
@@ -876,13 +876,13 @@ window.addEventListener("message", async (event) => {
         }, 200);
         if (authCode != null) {
           if (authState == null) {
-            let [code, response] = await sendRequest("POST", "auth", { code: authCode });
+            let [code, response] = await sendRequest("POST", "auth?ss=" + socket.secureID, { code: authCode });
             if (code == 200) {
               updateToSignedIn(response);
             } else {
               showPopUp("An Error Occured", response, [["Okay", "var(--grayColor)"]]);
             }
-          } else {
+          } else if (authState == "transfer") {
             let [code, response] = await sendRequest("POST", "auth/transfer", { code: authCode });
             if (code == 200) {
               let data = JSON.parse(response);
@@ -921,10 +921,60 @@ async function updateToSignedIn(response) {
   userID = account._id;
   await loadNeededModules();
   if (account.Onboarding) {
-    showPopUp("Complete Sign Up", `<input id="inputOnboardPfp" type="file" accept="image/*" hidden="true"><span class="settingsTitle">Username</span><input type="text" placeholder="Username" class="settingsInput" id="inputName" value="${account.Exotek.Name || ""}"><span class="settingsTitle">Profile Picture</span><div class="groupIconCreate">
-          <img class="groupIconCreateHolder" ${account.Exotek.Image != null ? `src="${account.Exotek.Image}"` : ""}>
+    console.log(account);
+    let modalCode = showPopUp("Complete Sign Up", `<span class="settingsTitle">Profile Picture</span><div class="groupIconCreate" id="exotekPfpHolder">
+          <img class="groupIconCreateHolder" ${account.Exotek.image != null ? `src="${account.Exotek.image}"` : ""} id="exotekPfp">
           <div class="settingsUploadButton"></div>
-        </div>`, [["Sign Up", "var(--signUpColor)"]]);
+        </div><input id="inputOnboardPfp" type="file" accept="image/*" hidden="true"><span class="settingsTitle">Username</span><input type="text" placeholder="Username" class="settingsInput" id="inputName" value="${account.Exotek.user || ""}">`, [["Sign Up", "var(--signUpColor)", async function () {
+      let formdata = new FormData();
+      formdata.append("user", findI("inputName").value);
+      if (findI("inputOnboardPfp").files.length > 0) {
+        formdata.append("image", findI("inputOnboardPfp").files[0]);
+      }
+      let [code, response] = sendRequest("POST", "auth/signup", formdata, true);
+      if (code == 200) {
+        findI("backBlur" + modalCode).style.opacity = 0;
+        findI("backBlur" + modalCode).children[0].style.transform = "scale(0.9)";
+        setTimeout(function () {
+          findI("backBlur" + modalCode).remove();
+        }, 200);
+      } else {
+        showPopUp("An Error Occured", response, [["Okay", "var(--grayColor)"]]);
+      }
+    }, true]]);
+    tempListen(findI("exotekPfpHolder"), "click", function () {
+      findI("inputOnboardPfp").click();
+    });
+    tempListen(findI("inputOnboardPfp"), "change", function(e) {
+      let imageHolder = findI("exotekPfp");
+        let file = e.target.files[0];
+        if (file.type.substring(0, 6) == "image/") {
+          if (supportedImageTypes.includes(file.type.replace(/image\//g, "")) == true) {
+            let premium = hasPremium()
+            if (file.size < 2097153 || (file.size < 2097153 * 2 && premium)) { // 2 MB
+              if (imageHolder.src != null) {
+                URL.revokeObjectURL(imageHolder.src);
+              }
+              let blob = URL.createObjectURL(file);
+              imageHolder.src = blob;
+              imageHolder.style.display = "unset";
+            } else {
+              if (file.size > 2097153 && !premium) {
+                // alert("I think we have a problem")
+                showPopUp("Too big!", "Your image must be under 2MB. However, with Photop Premium you can upload up too 4MB!", [["Premium", "var(--premiumColor)", function() { setPage("premium");}], ["Okay", "var(--grayColor)"]]);
+              } else {
+                if (file.size > 2097153 * 2 && premium) {
+                  showPopUp("Too big!", "Your image file size must be under 4MB.", [["Okay", "var(--grayColor)"]]);
+                }
+              }
+            }
+          } else {
+            showPopUp("Invalid Image Type", "Photop only accepts images of the following types: <i style='color: #bbb'>" + (supportedImageTypes.join(", ")) + "</i>", [["Okay", "var(--grayColor)"]]);
+          }
+        } else {
+          showPopUp("Must be an Image", "Only image files can be uploaded to Photop.", [["Okay", "var(--grayColor)"]]);
+        }
+      });
     return;
   }
   if (data.token != null) {

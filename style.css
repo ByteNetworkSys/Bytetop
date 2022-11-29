@@ -1641,6 +1641,7 @@ input[type="radio"]:checked + .radioLabel:before, input[type="checkbox"]:checked
 	border-width:3px;
 	border-color:var(--borderColor);
 	border-radius:50%;
+	object-fit:cover;
 }
 #exotekUsername {
 	font-weight:bold;
@@ -1667,8 +1668,10 @@ input[type="radio"]:checked + .radioLabel:before, input[type="checkbox"]:checked
   margin-top: 6px;
 }
 #affiliateUrlInput {
-  color: var(--themeColor);
+  flex: 1;
+  width: unset;
   margin: 0px;
+  color: var(--themeColor);
 }
 #settingsCopyText {
   margin-left: 6px;
