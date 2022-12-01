@@ -272,6 +272,7 @@ async function renewToken() {
     },
     body: JSON.stringify({ userid: localStorage.getItem("userID"), refresh: JSON.parse(token).refresh })
   });
+  console.log(refreshToken);
   if (refreshToken.status == 200) {
     let refreshData = JSON.parse(await refreshToken.text());
     localStorage.setItem("token", JSON.stringify(refreshData.token));
@@ -279,7 +280,7 @@ async function renewToken() {
   } else if (refreshToken.status == 404) {
     localStorage.removeItem("userID");
     localStorage.removeItem("token");
-    location.reload();
+    //location.reload();
   }
 }
 let sentFirstReq = false;
@@ -324,9 +325,7 @@ async function sendRequest(method, path, body, noFileType) {
     }
     switch (response.status) {
       case 401:
-        localStorage.removeItem("userID");
-        localStorage.removeItem("token");
-        location.reload();
+        await renewToken();
         break;
       case 429:
         (await getModule("modal"))("Rate Limited", await response.text(), [["Okay", "var(--grayColor)"]]);
@@ -697,6 +696,8 @@ async function init() {
     await auth();
   }
   if (alreadyInit == true) {
+    updateProfileSub();
+    setAccountSub();
     return;
   }
   alreadyInit = true;
@@ -923,15 +924,16 @@ async function updateToSignedIn(response) {
   if (account.Onboarding) {
     console.log(account);
     let modalCode = showPopUp("Complete Sign Up", `<span class="settingsTitle">Profile Picture</span><div class="groupIconCreate" id="exotekPfpHolder">
-          <img class="groupIconCreateHolder" ${account.Exotek.image != null ? `src="${account.Exotek.image}"` : ""} id="exotekPfp">
+          <img class="groupIconCreateHolder" src="${account.Exotek.image != null ? account.Exotek.image : ""}" id="exotekPfp">
           <div class="settingsUploadButton"></div>
         </div><input id="inputOnboardPfp" type="file" accept="image/*" hidden="true"><span class="settingsTitle">Username</span><input type="text" placeholder="Username" class="settingsInput" id="inputName" value="${account.Exotek.user || ""}">`, [["Sign Up", "var(--signUpColor)", async function () {
       let formdata = new FormData();
       formdata.append("user", findI("inputName").value);
+      formdata.append("auth", );
       if (findI("inputOnboardPfp").files.length > 0) {
         formdata.append("image", findI("inputOnboardPfp").files[0]);
       }
-      let [code, response] = sendRequest("POST", "auth/signup", formdata, true);
+      let [code, response] = await sendRequest("POST", "auth/signup", formdata, true);
       if (code == 200) {
         findI("backBlur" + modalCode).style.opacity = 0;
         findI("backBlur" + modalCode).children[0].style.transform = "scale(0.9)";
@@ -945,6 +947,9 @@ async function updateToSignedIn(response) {
     tempListen(findI("exotekPfpHolder"), "click", function () {
       findI("inputOnboardPfp").click();
     });
+    if (account.Exotek.image != null) {
+      findI("exotekPfp").style.display = "unset";
+    }
     tempListen(findI("inputOnboardPfp"), "change", function(e) {
       let imageHolder = findI("exotekPfp");
         let file = e.target.files[0];
@@ -961,7 +966,7 @@ async function updateToSignedIn(response) {
             } else {
               if (file.size > 2097153 && !premium) {
                 // alert("I think we have a problem")
-                showPopUp("Too big!", "Your image must be under 2MB. However, with Photop Premium you can upload up too 4MB!", [["Premium", "var(--premiumColor)", function() { setPage("premium");}], ["Okay", "var(--grayColor)"]]);
+                showPopUp("Too big!", "Your image must be under 2MB. However, with Photop Premium you can upload up too 4MB!", [["Okay", "var(--grayColor)"]]);
               } else {
                 if (file.size > 2097153 * 2 && premium) {
                   showPopUp("Too big!", "Your image file size must be under 4MB.", [["Okay", "var(--grayColor)"]]);
@@ -2184,7 +2189,7 @@ function formatAMPM(date) {
   return strTime;
 }
 function formatFullDate(time) {
-  let date = new Date(time);
+  let date = new Date(time + epochOffset);
   let splitDate = date.toLocaleDateString().split("/");
   return week[date.getDay()] + ", " + months[splitDate[0] - 1] + " " + splitDate[1] + ", " + splitDate[2] + " at " + formatAMPM(date);
 }

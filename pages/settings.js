@@ -113,15 +113,15 @@ pages.settings = function() {
       `;
 
 			tempListen(findI("exotekManageButton"), "click", async function() {
-				(await getModule("webmodal"))("https://exotek.co/account?userid="+ account.AccountID, "Manage Exotek Account")
-			})
+				(await getModule("webmodal"))("https://exotek.co/account?userid="+ account.AccountID, "Manage Exotek Account");
+			});
 			tempListen(findI("exotekTransferButton"), "click", async function() {
-				(await getModule("webmodal"))("https://exotek.co/login?client_id=62f8fac716d8eb8d2f6562ef&redirect_uri=https%3A%2F%2F" + window.location.host + "&response_type=code&scope=userinfo&state=transfer", "Transfer Exotek Account")
-			})
+				(await getModule("webmodal"))("https://exotek.co/login?client_id=62f8fac716d8eb8d2f6562ef&redirect_uri=https%3A%2F%2F" + window.location.host + "&response_type=code&scope=userinfo&state=transfer", "Transfer Exotek Account");
+			});
 
       findI("affiliateUrlInput").value = `${window.location.origin}?affiliate=${account._id}`
       tempListen(findI("settingsCopyText"), "click", function() {
-        copyClipboardText(document.getElementById("affiliateUrlInput").value)
+        copyClipboardText(document.getElementById("affiliateUrlInput").value);
       });
       findI("settingsAffiliateStatClicks").textContent = ((account.Affiliate || {}).Clicks || 0) + " Clicks";
       findI("settingsAffiliateStatSignUps").textContent = ((account.Affiliate || {}).SignUps || 0) + " Sign Ups";
