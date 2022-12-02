@@ -922,14 +922,13 @@ async function updateToSignedIn(response) {
   userID = account._id;
   await loadNeededModules();
   if (account.Onboarding) {
-    console.log(account);
     let modalCode = showPopUp("Complete Sign Up", `<span class="settingsTitle">Profile Picture</span><div class="groupIconCreate" id="exotekPfpHolder">
           <img class="groupIconCreateHolder" src="${account.Exotek.image != null ? account.Exotek.image : ""}" id="exotekPfp">
           <div class="settingsUploadButton"></div>
         </div><input id="inputOnboardPfp" type="file" accept="image/*" hidden="true"><span class="settingsTitle">Username</span><input type="text" placeholder="Username" class="settingsInput" id="inputName" value="${account.Exotek.user || ""}">`, [["Sign Up", "var(--signUpColor)", async function () {
       let formdata = new FormData();
       formdata.append("user", findI("inputName").value);
-      formdata.append("auth", );
+      formdata.append("auth", userID + ";" + data.token.session);
       if (findI("inputOnboardPfp").files.length > 0) {
         formdata.append("image", findI("inputOnboardPfp").files[0]);
       }
@@ -943,7 +942,7 @@ async function updateToSignedIn(response) {
       } else {
         showPopUp("An Error Occured", response, [["Okay", "var(--grayColor)"]]);
       }
-    }, true]]);
+    }, true],["Cancel", "var(--grayColor)"]]);
     tempListen(findI("exotekPfpHolder"), "click", function () {
       findI("inputOnboardPfp").click();
     });
