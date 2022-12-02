@@ -280,7 +280,7 @@ async function renewToken() {
   } else if (refreshToken.status == 404) {
     localStorage.removeItem("userID");
     localStorage.removeItem("token");
-    //location.reload();
+    location.reload();
   }
 }
 let sentFirstReq = false;
@@ -677,8 +677,13 @@ async function auth() {
 }
 
 findI("logoutB").addEventListener("click", function() {
-  showPopUp("Are You Sure?", "Are you sure you want to log out?", [["Logout", "var(--themeColor)", function() {
-    sendRequest("PUT", "auth/logout");
+  showPopUp("Are You Sure?", "Are you sure you want to log out?", [["Logout", "var(--themeColor)", async function() {
+    let [code, response] = await sendRequest("PUT", "auth/logout");
+    if (code == 200) {
+      localStorage.removeItem("userID");
+      localStorage.removeItem("token");
+      location.reload();
+    }
   }], ["Cancel", "var(--grayColor)"]]);
 });
 
