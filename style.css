@@ -1100,6 +1100,26 @@ button:active {
   border: none;
   overflow: scroll;
 }
+.exotekLoginBtn {
+  display: flex;
+  width: 100%;
+  margin-top: 8px;
+  font-family: var(--secondFont);
+  text-align: center;
+  color: black;
+  background-color: white;
+  background: url(https://exotek.co/images/lightbackground.svg) no-repeat center center;
+  background-size: cover;
+  border-radius: 16px;
+  line-height: 50px;
+  font-size: 30px;
+  font-weight: 700;
+  justify-content: center;
+}
+.btnImg {
+  height: 50px;
+  width: 50px;
+}
 .dropdown {
   position: fixed;
   min-width: 150px;
@@ -1396,6 +1416,7 @@ button:active {
 .profileDate {
   display: flex;
   margin: 12px 12px 0px 0px;
+  align-items: center;
   font-size: 16px;
   line-height: 16px;
 }

@@ -92,7 +92,7 @@ function updateProfileSub() {
               }
             }
           } else if (data.data.Settings != null && data.data.Settings.Display != null) {
-            localStorage.setItem("display", JSON.stringify(account.Settings.Display));
+            setLocalStore("display", JSON.stringify(account.Settings.Display));
             updateDisplay(account.Settings.Display.Theme.replace(" Mode", ""));
           } else if (data.data.Affiliate != null && findC("settingsAffiliateStats") != null) {
             findI("settingsAffiliateStatClicks").textContent = ((account.Affiliate || {}).Clicks || 0) + " Clicks";

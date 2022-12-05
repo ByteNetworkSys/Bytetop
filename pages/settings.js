@@ -8,7 +8,7 @@ pages.settings = function() {
   let settingsTabs = ["account", "display", "blocked"]; //inventory
   let currentSettingsTab = "";
 
-  let premium = hasPremium()
+  let premium = hasPremium()  
   let limit = premium ? 600 : 300;
 
   let alreadyOpenTab = findI("settingsHolder");
@@ -55,10 +55,11 @@ pages.settings = function() {
           </div>
           <input class="settingsInput" id="settingsUsername" placeholder="${account.User}" changed="false">
           <div class="settingsSaveHolder"><button class="settingsSave" id="saveBasic">Save</button></div>
-
+        <!--
 				 <div class="settingsTitle">Profile URL</div>
 					<input class="settingsInput" id="settingsNewUrl" changed="false" placeholder = "https://app.photop.live/?user=your-name-here">
           <div class="settingsSaveHolder"><button class="settingsSave" style="background:var(--premiumColor)" id="saveURL">Save</button></div>
+          -->
         </div>
 				
         <div class="settingsSection">
@@ -149,7 +150,8 @@ pages.settings = function() {
             } else {
               // showPopUp("An Error Occured", "Your banner is too large. Please upload a smaller banner.", [["Okay", "var(--grayColor)"]]);
               if (file.size > 5242881 && !premium) {
-                showPopUp("Too big!", "Your image must be under 5MB. However, with Photop Premium you can upload up too 10MB!", [["Okay", "var(--grayColor)"]]);
+                showPopUp("Too big!", "Your image must be under 5MB.", [["Okay", "var(--grayColor)"]]);
+                //showPopUp("Too big!", "Your image must be under 5MB. However, with Photop Premium, you can upload up to 10Mb", [["Okay", "var(--grayColor)"]]);
               } else if (file.size > 5242881 * 2) {
                 showPopUp("Too big!", "Your image file size must be under 10MB.", [["Okay", "var(--grayColor)"]]);
               }
@@ -186,7 +188,8 @@ pages.settings = function() {
               // showPopUp("An Error Occured", "Your profile picture is too large. Please upload a smaller picture.", [["Okay", "var(--grayColor)"]]);
               if (file.size > 2097153 && !hasPremium()) {
                 // alert("I think we have a problem")
-                showPopUp("Too big!", "Your image must be under 2MB. However, with Photop Premium you can upload up too 4MB!", [["Okay", "var(--grayColor)"]]);
+                //showPopUp("Too big!", "Your image must be under 2MB. However, with Photop Premium you can upload up too 4MB!", [["Okay", "var(--grayColor)"]]);
+                showPopUp("Too big!", "Your image must be under 2MB.", [["Okay", "var(--grayColor)"]]);
               } else {
                 if (file.size > 2097153 * 2 && hasPremium()) {
                   showPopUp("Too big!", "Your image file size must be under 4MB.", [["Okay", "var(--grayColor)"]]);
@@ -259,7 +262,8 @@ pages.settings = function() {
           }
         } else {
           if (!premium) {
-            showPopUp("Invalid Description", `Descriptions must be less than ${limit} characters long. However, with Photop Premium, you can have descriptions with up to 600 characters!`, [["Okay", "var(--themeColor)"]]);
+            //showPopUp("Invalid Description", `Descriptions must be less than ${limit} characters long. However, with Photop Premium, you can have descriptions with up to 600 characters!`, [["Okay", "var(--themeColor)"]]);
+            showPopUp("Invalid Description", `Descriptions must be less than ${limit} characters long.`, [["Okay", "var(--themeColor)"]]);
           } else {
             showPopUp("Invalid Description", `Descriptions must be less than ${limit} characters long.`, [["Okay", "var(--themeColor)"]]);
           }
@@ -361,7 +365,7 @@ pages.settings = function() {
         ]);
       });
       
-      tempListen(findI("saveURL"), "click", async function() {
+      /* tempListen(findI("saveURL"), "click", async function() {
         let url = findI("settingsNewUrl").value;
         if (verifyUsername(url)) {
           let [code, response] = await sendRequest("PUT", "me/settings", { update: "profileurl", value: url });
@@ -374,18 +378,18 @@ pages.settings = function() {
           showPopUp("Invalid URL", "URLs must be 3-20 characters, and can only include letters, numbers, underscores, and dashes.", [["Okay", "var(--themeColor)"]]);
         }
         findI("settingsNewUrl").value = "";
-      });
+      }); */
     },
     display: async function() {
       let displayHolder = createElement("settingsHolder-display", "div", "pageHolder");
       displayHolder.innerHTML = `<div class="settingsSection">
   <div class="settingsTitle">Theme</div>
-  <input type="radio" name="theme" value="Bootop" id="themeBootop"><label for="themeBootop" class="radioLabel">Bootop</label>
   <input type="radio" name="theme" value="Dark" id="themeDark"><label for="themeDark" class="radioLabel">Dark</label>
   <input type="radio" name="theme" value="Light" id="themeLight"><label for="themeLight" class="radioLabel">Light</label>
-  <input type="radio" name="theme" value="Blood Moon" id="themeBloodMoon"><label for="themeBloodMoon" class="radioLabel">Blood Moon</label>
+  <input type="radio" name="theme" value="Bootop" id="themeBootop"><label for="themeBootop" class="radioLabel" style="display: none">Bootop</label>
   <input type="radio" name="theme" value="Under The Sea" id="themeUnderTheSea"><label for="themeUnderTheSea" class="radioLabel">Under The Sea</label>
   <input type="radio" name="theme" value="Hacker" id="themeHacker"><label for="themeHacker" class="radioLabel">Hacker</label>
+  <input type="radio" name="theme" value="Blood Moon" id="themeBloodMoon"><label for="themeBloodMoon" class="radioLabel">Blood Moon</label>
 </div>
 <div class="settingsSection">
   <div class="settingsTitle">Embeds</div>

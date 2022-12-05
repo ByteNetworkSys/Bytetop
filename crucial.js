@@ -255,12 +255,35 @@ function modifyParams(key, value) {
   window.history.pushState({}, '', Url);
 }
 
+let localDataStore = {};
+function setLocalStore(key, data) {
+  localDataStore[key] = data;
+  try {
+    localStorage.setItem(key, data);
+  } catch {}
+}
+function getLocalStore(key) {
+  let result = localDataStore[key];
+  try {
+    result = localStorage.getItem(key);
+  } catch {}
+  return result;
+}
+function removeLocalStore(key) {
+  if (localDataStore[key]) {
+    delete localDataStore[key];
+  }
+  try {
+    localStorage.removeItem(key);
+  } catch {}
+}
+
 let epochOffset = 0;
 function getEpoch() {
   return Date.now() + epochOffset;
 }
 async function renewToken() {
-  let token = localStorage.getItem("token");
+  let token = getLocalStore("token");
   if (token == null) {
     return;
   }
@@ -270,16 +293,16 @@ async function renewToken() {
       "cache": "no-cache",
       "Content-Type": "text/plain"
     },
-    body: JSON.stringify({ userid: localStorage.getItem("userID"), refresh: JSON.parse(token).refresh })
+    body: JSON.stringify({ userid: getLocalStore("userID"), refresh: JSON.parse(token).refresh })
   });
-  console.log(refreshToken);
   if (refreshToken.status == 200) {
     let refreshData = JSON.parse(await refreshToken.text());
-    localStorage.setItem("token", JSON.stringify(refreshData.token));
+    setLocalStore("token", JSON.stringify(refreshData.token));
     account.Realtime = refreshData.realtime;
+    return refreshData;
   } else if (refreshToken.status == 404) {
-    localStorage.removeItem("userID");
-    localStorage.removeItem("token");
+    removeLocalStore("userID");
+    removeLocalStore("token");
     location.reload();
   }
 }
@@ -306,13 +329,13 @@ async function sendRequest(method, path, body, noFileType) {
       }
       sendData.body = body;
     }
-    let token = localStorage.getItem("token");
+    let token = getLocalStore("token");
     if (token != null) {
       token = JSON.parse(token);
       if (token.expires < Math.floor(getEpoch() / 1000)) {
-        await renewToken();
+        token = await renewToken() || token;
       }
-      let sendUserID = localStorage.getItem("userID");
+      let sendUserID = getLocalStore("userID");
       if (sendUserID != null) {
         sendData.headers.auth = sendUserID + ";" + token.session;
       }
@@ -663,8 +686,8 @@ function updateDisplay(type) {
       break;
   }
 }
-if (localStorage.getItem("display") != null) {
-  account.Settings = { Display: JSON.parse(localStorage.getItem("display")) };
+if (getLocalStore("display") != null) {
+  account.Settings = { Display: JSON.parse(getLocalStore("display")) };
   updateDisplay(account.Settings.Display.Theme.replace(" Mode", ""));
 }
 
@@ -678,10 +701,14 @@ async function auth() {
 
 findI("logoutB").addEventListener("click", function() {
   showPopUp("Are You Sure?", "Are you sure you want to log out?", [["Logout", "var(--themeColor)", async function() {
-    let [code, response] = await sendRequest("PUT", "auth/logout");
+    let token = getLocalStore("token");
+    if (token == null) {
+      return;
+    }
+    let [code, response] = await sendRequest("POST", "auth/logout", { refresh: JSON.parse(token).refresh });
     if (code == 200) {
-      localStorage.removeItem("userID");
-      localStorage.removeItem("token");
+      removeLocalStore("userID");
+      removeLocalStore("token");
       location.reload();
     }
   }], ["Cancel", "var(--grayColor)"]]);
@@ -697,7 +724,7 @@ async function loadNeededModules() {
 let alreadyInit = false;
 async function init() {
   loadNeededModules();
-  if (localStorage.getItem("token") != null) {
+  if (getLocalStore("token") != null) {
     await auth();
   }
   if (alreadyInit == true) {
@@ -728,7 +755,7 @@ async function init() {
     updateProfileSub();
     setAccountSub("home");
     if (account.Settings != null && account.Settings.Display != null) {
-      localStorage.setItem("display", JSON.stringify(account.Settings.Display));
+      setLocalStore("display", JSON.stringify(account.Settings.Display));
     }
   } else {
     let sidebarButtonsChilds = sidebarButtons.children;
@@ -765,7 +792,15 @@ async function init() {
       openLoginModal("signup", "Create Account");
     });
     findC("signInButton").addEventListener("click", function() {
-      openLoginModal("signin", "Sign In");
+      let modalCode = showPopUp("Sign In", `<button class="exotekLoginBtn" id="exotekLoginBtn"><image src="https://exotek.co/images/favicon.png" class="btnImg"><div style="flex: 1">Exotek</div></button><div style="text-align: center"><br>Haven't transferred accounts yet?<br><a href="#migrate" target="_blank">Migrate Account</a></div>`, [["Cancel", "var(--grayColor)"]]);
+      findI("exotekLoginBtn").addEventListener("click", function () {
+        openLoginModal("signin", "Sign In");
+        findI("backBlur" + modalCode).style.opacity = 0;
+        findI("backBlur" + modalCode).children[0].style.transform = "scale(0.9)";
+        setTimeout(function () {
+          findI("backBlur" + modalCode).remove();
+        }, 199);
+      });
     });
     if (findC("pageHolder") != null) {
       main.insertBefore(signInUpBar, findC("pageHolder"));
@@ -928,24 +963,42 @@ async function updateToSignedIn(response) {
   await loadNeededModules();
   if (account.Onboarding) {
     let modalCode = showPopUp("Complete Sign Up", `<span class="settingsTitle">Profile Picture</span><div class="groupIconCreate" id="exotekPfpHolder">
-          <img class="groupIconCreateHolder" src="${account.Exotek.image != null ? account.Exotek.image : ""}" id="exotekPfp">
+          <img class="groupIconCreateHolder" src="${account.Exotek.image || assetURL + "ProfileImages/DefaultProfilePic"}" id="exotekPfp">
           <div class="settingsUploadButton"></div>
         </div><input id="inputOnboardPfp" type="file" accept="image/*" hidden="true"><span class="settingsTitle">Username</span><input type="text" placeholder="Username" class="settingsInput" id="inputName" value="${account.Exotek.user || ""}">`, [["Sign Up", "var(--signUpColor)", async function () {
-      let formdata = new FormData();
-      formdata.append("user", findI("inputName").value);
-      formdata.append("auth", userID + ";" + data.token.session);
-      if (findI("inputOnboardPfp").files.length > 0) {
-        formdata.append("image", findI("inputOnboardPfp").files[0]);
+      let formData = new FormData();
+      formData.append("user", findI("inputName").value);
+      formData.append("auth", userID + ";" + data.token.session);
+      if (getParam("affiliate") != null) {
+        formData.append("affiliate", getParam("affiliate"));
       }
-      let [code, response] = await sendRequest("POST", "auth/signup", formdata, true);
+      if (findI("inputOnboardPfp").files.length > 0) {
+        let imgSRC = findI("exotekPfp").src;
+        await fetch(imgSRC).then(async function(file) {
+          formData.append("image", await file.blob());
+          URL.revokeObjectURL(imgSRC);
+        });
+      }
+      let [code, suresponse] = await sendRequest("POST", "auth/signup", formData, true);
       if (code == 200) {
+        let signUpData = JSON.parse(suresponse);
+        delete data.user.Onboarding;
+        delete data.user.OnboardExpires;
+        data.user.AccountID = data.user.AwaitAccountID;
+        delete data.user.AwaitAccountID;
+        data.user.User = signUpData.User;
+        if (signUpData.ProfilePic) {
+          data.user.Settings = data.user.Settings || {};
+          data.user.Settings.ProfilePic = signUpData.ProfilePic;
+        }
+        updateToSignedIn(JSON.stringify(data));
         findI("backBlur" + modalCode).style.opacity = 0;
         findI("backBlur" + modalCode).children[0].style.transform = "scale(0.9)";
         setTimeout(function () {
           findI("backBlur" + modalCode).remove();
         }, 200);
       } else {
-        showPopUp("An Error Occured", response, [["Okay", "var(--grayColor)"]]);
+        showPopUp("An Error Occured", suresponse, [["Okay", "var(--grayColor)"]]);
       }
     }, true],["Cancel", "var(--grayColor)"]]);
     tempListen(findI("exotekPfpHolder"), "click", function () {
@@ -969,8 +1022,8 @@ async function updateToSignedIn(response) {
               imageHolder.style.display = "unset";
             } else {
               if (file.size > 2097153 && !premium) {
-                // alert("I think we have a problem")
-                showPopUp("Too big!", "Your image must be under 2MB. However, with Photop Premium you can upload up too 4MB!", [["Okay", "var(--grayColor)"]]);
+                showPopUp("Too big!", "Your image must be under 2MB.", [["Okay", "var(--grayColor)"]]);
+                //showPopUp("Too big!", "Your image must be under 2MB. However, with Photop Premium you can upload up too 4MB!", [["Okay", "var(--grayColor)"]]);
               } else {
                 if (file.size > 2097153 * 2 && premium) {
                   showPopUp("Too big!", "Your image file size must be under 4MB.", [["Okay", "var(--grayColor)"]]);
@@ -988,8 +1041,8 @@ async function updateToSignedIn(response) {
   }
   if (data.token != null) {
     // If function was called from signin/signup:
-    localStorage.setItem("userID", data.user._id);
-    localStorage.setItem("token", JSON.stringify(data.token));
+    setLocalStore("userID", data.user._id);
+    setLocalStore("token", JSON.stringify(data.token));
     refreshPage();
     let sidebarButtonsChilds = sidebarButtons.children;
     for (let i = 0; i < sidebarButtonsChilds.length; i++) {
@@ -1029,7 +1082,7 @@ async function updateToSignedIn(response) {
 }
 
 // Track Affiliate Clicks:
-if (getParam("affiliate") != null && localStorage.getItem("userID") == null) {
+if (getParam("affiliate") != null && getLocalStore("userID") == null) {
   sendRequest("POST", "analytics/affiliate", { type: "click", userid: getParam("affiliate") });
 }
 
@@ -2257,7 +2310,7 @@ if (isTouchDevice() == true && screen.width < 550 || getParam("embed") == "mobil
 }
 
 /*
-if (localStorage.getItem("lastUpdateView") != "PhotopRevamp") {
+if (getLocalStore("lastUpdateView") != "PhotopRevamp") {
   let zoomedImageBlur = createElement("backBlur", "div", document.body);
   let zoomedImageHolder = createElement("zoomedImageHolder", "div", zoomedImageBlur);
   createElement("zoomedImage", "img", zoomedImageHolder).src = "./icons/revampnotif.svg";
@@ -2272,6 +2325,6 @@ if (localStorage.getItem("lastUpdateView") != "PhotopRevamp") {
       event.target.closest(".backBlur").remove();
     }, 200);
   });
-  localStorage.setItem("lastUpdateView", "PhotopRevamp");
+  setLocalStore("lastUpdateView", "PhotopRevamp");
 }
 */

@@ -186,10 +186,10 @@ modules.actions = function() {
           let postUI = `<div contenteditable="true" id="editPost">${post.getAttribute("text")}</div>`
           showPopUp("Edit Post", postUI, [["Save", "var(--premiumColor)", async function() {
             post.style.opacity = "0.5";
-            let editedText = findI("editPost").textContent;
-
-            let [code, response] = await sendRequest("POST", `posts/edit?postID=${post.id} `, { text: editedText });
-            
+            let sendFormData = new FormData();
+          sendFormData.append("data", JSON.stringify({ text: findI("editPost").textContent }));
+            let [code, response] = await sendRequest("POST", `posts/edit?postid=${post.id} `, sendFormData, true);
+           
             if (code == 200) {
               post.setAttribute("text", editedText);
             } else {
@@ -277,7 +277,8 @@ modules.actions = function() {
         }
         if (text.length > limit) {
           if (limit == 200) {
-            showPopUp("That's Too Long", `Please keep your chats to under ${limit} characters. However, with Photop Premium, you can send chats with up to 400 characters!`, [["Premium", "var(--premiumColor)", function() { setPage("premium"); }], ["Okay", "var(--grayColor)"]]);
+            //showPopUp("That's Too Long", `Please keep your chats to under ${limit} characters. However, with Photop Premium, you can send chats with up to 400 characters!`, [["Premium", "var(--premiumColor)", function() { setPage("premium"); }], ["Okay", "var(--grayColor)"]]);
+            showPopUp("That's Too Long", `Please keep your chats to under ${limit} characters. `, [["Okay", "var(--grayColor)"]]);
           } else {
             showPopUp("That's Too Long", `Please keep your chats to under ${limit} characters.`, [["Okay", "var(--grayColor)"]]);
           }
