@@ -243,7 +243,7 @@ modules.actions = function() {
               blockUser(post.getAttribute("userid"), post.getAttribute("name"));
             }]);
             dropdownButtons.unshift(["Report", "#FFCB70", function() {
-              reportContent(post.getAttribute("id"), post.getAttribute("name"), "post");
+              reportContent(post.getAttribute("id"), post.getAttribute("name"), post.getAttribute("userid"), "post");
             }]);
             if (checkPermision(account.Role, "CanDeletePosts") == true) {
               dropdownButtons.unshift(["Ban User", "#FF5C5C", async function() {
@@ -394,7 +394,7 @@ modules.actions = function() {
               blockUser(chat.getAttribute("userid"), chat.getAttribute("user"));
             }]);
             dropdownButtons.unshift(["Report", "#FFCB70", function() {
-              reportContent(chat.getAttribute("id"), chat.getAttribute("user"), "chat");
+              reportContent(chat.getAttribute("id"), chat.getAttribute("user"), chat.getAttribute("userid"), "chat");
             }]);
             if (checkPermision(account.Role, "CanDeletePosts") == true) {
               dropdownButtons.unshift(["Ban User", "#FF5C5C", async function() {

@@ -287,19 +287,20 @@ async function renewToken() {
   if (token == null) {
     return;
   }
+  let sendUserID = userID || getLocalStore("userID");
   let refreshToken = await fetch(serverURL + "auth/renew", {
     method: "POST",
     headers: {
       "cache": "no-cache",
       "Content-Type": "text/plain"
     },
-    body: JSON.stringify({ userid: getLocalStore("userID"), refresh: JSON.parse(token).refresh })
+    body: JSON.stringify({ userid: sendUserID, refresh: JSON.parse(token).refresh })
   });
   if (refreshToken.status == 200) {
     let refreshData = JSON.parse(await refreshToken.text());
     setLocalStore("token", JSON.stringify(refreshData.token));
     account.Realtime = refreshData.realtime;
-    return refreshData;
+    return refreshData.token;
   } else if (refreshToken.status == 404) {
     removeLocalStore("userID");
     removeLocalStore("token");
@@ -335,7 +336,7 @@ async function sendRequest(method, path, body, noFileType) {
       if (token.expires < Math.floor(getEpoch() / 1000)) {
         token = await renewToken() || token;
       }
-      let sendUserID = getLocalStore("userID");
+      let sendUserID = userID || getLocalStore("userID");
       if (sendUserID != null) {
         sendData.headers.auth = sendUserID + ";" + token.session;
       }
@@ -2169,15 +2170,19 @@ function createTooltip(parent, text) {
 function blockUser(id, name) {
   showPopUp(`Block ${name}?`, `Blocking ${name} will prevent you from seeing their content. It won't prevent ${name} from seeing yours.`, [["Block", "#FF8652", async function() {
     let [code, response] = await sendRequest("PUT", "user/block?userid=" + id);
-    if (code != 200) {
-      showPopUp("An Error Occured", response, [["Okay", "var(--grayColor)"]]);
+    if (code == 200) {
+      if (currentPage != "profile") {
+        refreshPage();
+      } else {
+        setPage("home");
+      }
     } else {
-      setPage("home");
+      showPopUp("An Error Occured", response, [["Okay", "var(--grayColor)"]]);
     }
   }], ["Wait, no", "var(--grayColor)"]]);
 }
 
-function reportContent(id, name, type) {
+function reportContent(id, name, userid, type) {
   let reportReasons = ["Inappropriate Content", "Inappropriate Username", "Threats or Endangerment", "Hate Speech, Harassment, or Abuse", "Evading Bans, Mutes, or Blocks", "Spamming", "Spreading Rumors or False Information", "Posting Malicious Content or Links", "May be Inflicting Physical Harm", "Other"];
   let popUpCode = showPopUp("Report Content", `Please select a reason why <b>${name}</b> is breaking the rules.`, [["Report", "#FFCB70", async function() {
     let selectedReason = popUpText.querySelector('input[name="report"]:checked');
@@ -2196,12 +2201,15 @@ function reportContent(id, name, type) {
       findI("backBlur" + popUpCode2).remove();
       if (code == 200) {
         showPopUp("Report Sent", `Your report was sent to the Photop Moderators. Thank you for helping to keep Photop safe. If you'd like, you can also <b>block</b> ${name} so their content will be hidden from you.`, [["Block", "#FF8652", async function() {
-          let [code2, response2] = await sendRequest("GET", "user?name=" + name);
-          if (code2 == 200) {
-            let data2 = JSON.parse(response2);
-            blockUser(response2._id, name);
+          let [code] = await sendRequest("PUT", "user/block?userid=" + userid);
+          if (code == 200) {
+            if (currentPage != "profile") {
+              refreshPage();
+            } else {
+              setPage("home");
+            }
           }
-        }], ["Okay", "var(--grayColor)"]]);
+        }], ["Close", "var(--grayColor)"]]);
       } else {
         showPopUp("An Error Occured", response, [["Okay", "var(--grayColor)"]]);
       }
@@ -2212,7 +2220,7 @@ function reportContent(id, name, type) {
   for (let i = 0; i < reportReasons.length; i++) {
     popUpText.innerHTML += `<input type="radio" name="report" value="${reportReasons[i]}" id="${reportReasons[i].replace(/\s/g, "")}"><label for="${reportReasons[i].replace(/\s/g, "")}" class="radioLabel report">${reportReasons[i]}</label>`
   }
-  popUpText.innerHTML += `<div class="reportContextTitle">Additional Context <i>(Optional):</i></div><div id="reportContext" contenteditable="true" placeholder="200 characters max." class="textArea"></div>`;
+  popUpText.innerHTML += `<div class="reportContextTitle">Additional Context <i>(Optional):</i></div><div id="reportContext" contenteditable="true" placeholder="200 Max Characters" class="textArea"></div>`;
 }
 function formatDate(time) {
   let d = new Date(time);

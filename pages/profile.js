@@ -45,7 +45,8 @@ pages.profile = async function() {
   modifyParams("user", profileID);
   currentProfile = { user: { _id: profileID } };
   let user = recentUsers[profileID];
-  if (profileID == userID) {
+  if (profileID == userID || profileID == account.CustomURL) {
+    profileID = userID;
     user = account;
   }
   let data;
@@ -59,6 +60,7 @@ pages.profile = async function() {
     }
     data = JSON.parse(response);
     currentProfile = data;
+    profileID = data.user._id;
     user = data.user;
     recentUsers[profileID] = user;
     if (user.ActivePunishment != null) {
@@ -108,12 +110,12 @@ pages.profile = async function() {
   findI("profileFollowerCount").innerHTML = `<span class="profileCountNumber" count="followerCount" userid="${user._id}">${user.ProfileData.Followers || 0}</span> <span class="profileFollowLabel">${(user.ProfileData.Followers == 1 ? "Follower" : "Followers")}</span>`
   findI("profileFollowingCount").innerHTML = `<span class="profileCountNumber" count="followingCount" userid="${user._id}">${user.ProfileData.Following || 0}</span> <span class="profileFollowLabel">Following</span>`
   tempListen(findI("profileFollowerCount"), "click", function() {
-    modifyParams('user', user._id);
-    setPage('followers');
+    modifyParams("user", user._id);
+    setPage("followers");
   });
   tempListen(findI("profileFollowingCount"), "click", function() {
-    modifyParams('user', user._id);
-    setPage('following');
+    modifyParams("user", user._id);
+    setPage("following");
   });
   if (user.ProfileData.Description != null && user.ProfileData.Description.length > 1) {
     pageHolder.querySelector(".profileBio").innerHTML = formatText(user.ProfileData.Description).replace(/\n/g, "<br>");
@@ -173,7 +175,7 @@ pages.profile = async function() {
         blockUser(profileID, user.User);
       }]);
       dropdownOptions.unshift(["Report", "#FFCB70", function() {
-        reportContent(profileID, user.User, "user");
+        reportContent(profileID, user.User, profileID, "user");
       }]);
       if (checkPermision(account.Role, "CanDeletePosts") == true) {
         dropdownOptions.unshift(["Ban User", "#FF5C5C", async function() {

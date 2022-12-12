@@ -371,28 +371,29 @@ button:active {
   display: flex;
   margin-bottom: 6px;
 }
-.postUsername {
-  width: fit-content;
-  margin-top: 1px;
-  font-size: 20px;
-  line-height: 20px;
-  font-weight: 500;
-}
-.postTimestamp {
-  font-size: 14px;
-  font-weight: 400;
-  color: #999;
-}
-
 .postProfilePic {
   width: 45px;
   height: 45px;
   object-fit: cover;
   border-radius: 8px;
 }
-
 .postInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   margin-left: 6px;
+}
+.postUsername {
+  width: fit-content;
+  font-size: 20px;
+  line-height: 20px;
+  font-weight: 500;
+}
+.postTimestamp {
+  margin-top: 1.5px;
+  font-size: 14px;
+  font-weight: 400;
+  color: #999;
 }
 
 .postContent {
