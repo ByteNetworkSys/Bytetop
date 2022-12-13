@@ -924,16 +924,24 @@ window.addEventListener("message", async (event) => {
             } else {
               showPopUp("An Error Occured", response, [["Okay", "var(--grayColor)"]]);
             }
-          } else if (authState == "transfer") {
-            let [code, response] = await sendRequest("POST", "auth/transfer", { code: authCode });
-            if (code == 200) {
-              let data = JSON.parse(response);
-              account.Email = data.Email;
-              account.Exotek = data.Exotek;
-              refreshPage();
-              showPopUp("Trasfered Accounts", "You will now use your Exotek account:</br><b>" + account.Exotek.user + "</b> <i>(" + account.Email + ")</i></br>when logging into Photop.", [["Okay", "var(--grayColor)"]]);
-            } else {
-              showPopUp("An Error Occured", response, [["Okay", "var(--grayColor)"]]);
+          } else if (authState == "transferlogin") {
+            window.transferLoginCode = authCode;
+            showPopUp("Complete Transfer", "To complete the process, login to the new Exotek account you wish to use when signing in.", [["Authenticate", "var(--themeColor)", async function() {
+              (await getModule("webmodal"))("https://exotek.co/login?client_id=62f8fac716d8eb8d2f6562ef&redirect_uri=https%3A%2F%2F" + window.location.host + "&response_type=code&scope=userinfo&state=transferfinish", "Transfer Exotek Account (New Account)");
+            }], ["Cancel", "var(--grayColor)"]]);
+          } else if (authState == "transferfinish") {
+            if (window.transferLoginCode) {
+              let [code, response] = await sendRequest("POST", "auth/transfer", { old: window.transferLoginCode, new: authCode });
+              if (code == 200) {
+                let data = JSON.parse(response);
+                account.Email = data.Email;
+                account.Exotek = data.Exotek;
+                refreshPage();
+                showPopUp("Trasfered Accounts", "You will now use your Exotek account:</br><b>" + account.Exotek.user + "</b> <i>(" + account.Email + ")</i></br>when logging into Photop.", [["Okay", "var(--grayColor)"]]);
+              } else {
+                showPopUp("An Error Occured", response, [["Okay", "var(--grayColor)"]]);
+              }
+              delete window.transferLoginCode;
             }
           }
         }

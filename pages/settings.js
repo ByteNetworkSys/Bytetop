@@ -117,7 +117,9 @@ pages.settings = function() {
 				(await getModule("webmodal"))("https://exotek.co/account?userid="+ account.AccountID, "Manage Exotek Account");
 			});
 			tempListen(findI("exotekTransferButton"), "click", async function() {
-				(await getModule("webmodal"))("https://exotek.co/login?client_id=62f8fac716d8eb8d2f6562ef&redirect_uri=https%3A%2F%2F" + window.location.host + "&response_type=code&scope=userinfo&state=transfer", "Transfer Exotek Account");
+        showPopUp("Begin Transfer", "First, login to your current Exotek account to begin the transfer process.", [["Sign In", "var(--themeColor)", async function() {
+          (await getModule("webmodal"))("https://exotek.co/login?client_id=62f8fac716d8eb8d2f6562ef&redirect_uri=https%3A%2F%2F" + window.location.host + "&response_type=code&scope=userinfo&state=transferlogin", "Transfer Exotek Account (Current Account)");
+        }], ["Cancel", "var(--grayColor)"]]);
 			});
 
       findI("affiliateUrlInput").value = `${window.location.origin}?affiliate=${account._id}`
