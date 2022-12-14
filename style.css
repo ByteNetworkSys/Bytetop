@@ -1,4 +1,4 @@
- :root {
+:root {
   --themeColor: #5AB7FA;
   --premiumColor: #FF42A7;
   --leftSidebarColor: #262630;
@@ -943,6 +943,9 @@ button:active {
   text-overflow: ellipsis;
   overflow: hidden;
 }
+.chatTextArea .chatAttr {
+  margin: 3px 0px 1px 0px;
+}
 .chatTime {
   font-size: 13px;
   font-weight: normal;
@@ -1468,7 +1471,7 @@ button:active {
   flex: 1 1 250px;
   margin: 8px;
   padding: 4px;
-  border-radius: 8px;
+  border-radius: 12px;
   background: var(--contentColor);
   display: flex;
   font-size: 14px;
