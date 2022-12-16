@@ -1,3 +1,5 @@
+let themes = ["Snowtop", "Dark", "Light", "Blood Moon", "Under The Sea", "Hacker"];
+let dispOptions = ["Embed YouTube Videos", "Embed Twitch Streams", "Embed GIFs"];
 wireframes.settings = `<div class="stickyContainer settingsTabs" id="tabs">
   <span class="tab" type="account" id="tab-account" tabindex="0">Account</span>
   <span class="tab" type="display" id="tab-display" tabindex="0">Display</span>
@@ -386,19 +388,11 @@ pages.settings = function() {
       let displayHolder = createElement("settingsHolder-display", "div", "pageHolder");
       displayHolder.innerHTML = `<div class="settingsSection">
   <div class="settingsTitle">Theme</div>
-  <input type="radio" name="theme" value="Treetop" id="themeTreetop"><label for="themeTreetop" class="radioLabel">Snowtop</label>
-  <input type="radio" name="theme" value="Dark" id="themeDark"><label for="themeDark" class="radioLabel">Dark</label>
-  <input type="radio" name="theme" value="Light" id="themeLight"><label for="themeLight" class="radioLabel">Light</label>
-  <input type="radio" name="theme" value="Bootop" id="themeBootop"><label for="themeBootop" class="radioLabel" style="display: none">Bootop</label>
-  <input type="radio" name="theme" value="Under The Sea" id="themeUnderTheSea"><label for="themeUnderTheSea" class="radioLabel">Under The Sea</label>
-  <input type="radio" name="theme" value="Hacker" id="themeHacker"><label for="themeHacker" class="radioLabel">Hacker</label>
-  <input type="radio" name="theme" value="Blood Moon" id="themeBloodMoon"><label for="themeBloodMoon" class="radioLabel">Blood Moon</label>
+  <div id="themeSelector"></div>
 </div>
 <div class="settingsSection">
   <div class="settingsTitle">Embeds</div>
-  <input type="checkbox" name="theme" id="embedYT"><label for="embedYT" class="radioLabel">Embed YouTube Videos</label>
-  <input type="checkbox" name="theme" id="embedTwitch"><label for="embedTwitch" class="radioLabel">Embed Twitch Streams</label>
-  <input type="checkbox" name="theme" id="embedGif"><label for="embedGif" class="radioLabel">Embed GIFs</label>
+  <div id="dispSelector"></div>
 </div>
 <div class="settingsSection">
   <a class="settingsLink" href="${window.location.origin}/#tos">Terms of Service</a>
@@ -409,124 +403,12 @@ pages.settings = function() {
   <a class="settingsLink" href="https://discord.com/invite/gnBVPbrAPd" target="_blank">Photop Discord</a>
   <div style="font-size: 16px; text-align: center;">©2022 Exotek LLC - All rights reserved</div>
 </div>`;
-      let setTheme = findI("theme" + account.Settings.Display.Theme.replace(/ Mode/g, "").replace(/\s/g, ""));
-      if (setTheme != null) {
-        setTheme.checked = true;
+      for (var i in themes) {
+        addThemeOption(themes[i]);
       }
-      findI("themeDark").addEventListener("change", async function() {
-        if (findI("themeDark").checked) {
-          let updatedSettings = account.Settings.Display;
-          updatedSettings.Theme = "Dark Mode";
-          updateDisplay("Dark");
-          let [code, response] = await sendRequest("POST", "me/settings", { update: "display", value: updatedSettings });
-          if (code != 200) {
-            showPopUp("Error Updating Theme", response, [["Okay", "var(--grayColor)"]]);
-            findI("theme" + account.Settings.Display.Theme.replace(/ Mode/g, "")).checked = true;
-            updateDisplay(account.Settings.Display.Theme.replace(/ Mode/g, ""));
-          }
-        }
-      });
-      findI("themeLight").addEventListener("change", async function() {
-        if (findI("themeLight").checked) {
-          let updatedSettings = account.Settings.Display;
-          updatedSettings.Theme = "Light Mode";
-          updateDisplay("Light");
-          let [code, response] = await sendRequest("POST", "me/settings", { update: "display", value: updatedSettings });
-          if (code == 200) {
-
-          } else {
-            showPopUp("Error Updating Theme", response, [["Okay", "var(--grayColor)"]]);
-            findI("theme" + account.Settings.Display.Theme.replace(/ Mode/g, "")).checked = true;
-            updateDisplay(account.Settings.Display.Theme.replace(/ Mode/g, ""));
-          }
-        }
-      });
-      findI("themeBloodMoon").addEventListener("change", async function() {
-        if (findI("themeBloodMoon").checked) {
-          let updatedSettings = account.Settings.Display;
-          updatedSettings.Theme = "Blood Moon Mode";
-          updateDisplay("Blood Moon");
-          let [code, response] = await sendRequest("POST", "me/settings", { update: "display", value: updatedSettings });
-          if (code == 200) {
-
-          } else {
-            showPopUp("Error Updating Theme", response, [["Okay", "var(--grayColor)"]]);
-            findI("theme" + account.Settings.Display.Theme.replace(/ Mode/g, "")).checked = true;
-            updateDisplay(account.Settings.Display.Theme.replace(/ Mode/g, ""));
-          }
-        }
-      });
-      findI("themeHacker").addEventListener("change", async function () {
-        if (findI("themeHacker").checked) {
-          let updatedSettings = account.Settings.Display;
-          updatedSettings.Theme = "Hacker Mode";
-          updateDisplay("Hacker");
-          let [code, response] = await sendRequest("POST", "me/settings", {update: "display", value: updatedSettings});
-          if (code == 200) {
-            
-          } else {
-            showPopUp("Error Updating Theme", response, [["Okay", "var(--grayColor)"]]);
-            findI("theme" + account.Settings.Display.Theme.replace(/ Mode/g, "")).checked = true;
-            updateDisplay(account.Settings.Display.Theme.replace(/ Mode/g, ""));
-          }
-        }
-      });
-      findI("themeUnderTheSea").addEventListener("change", async function () {
-        if (findI("themeUnderTheSea").checked) {
-          let updatedSettings = account.Settings.Display;
-          updatedSettings.Theme = "Under The Sea Mode";
-          updateDisplay("Under The Sea");
-          let [code, response] = await sendRequest("POST", "me/settings", {update: "display", value: updatedSettings});
-          if (code == 200) {
-            
-          } else {
-            showPopUp("Error Updating Theme", response, [["Okay", "var(--grayColor)"]]);
-            findI("theme" + account.Settings.Display.Theme.replace(/ Mode/g, "")).checked = true;
-            updateDisplay(account.Settings.Display.Theme.replace(/ Mode/g, ""));
-          }
-        }
-      });
-      findI("themeTreetop").addEventListener("change", async function () {
-        if (findI("themeTreetop").checked) {
-          let updatedSettings = account.Settings.Display;
-          updatedSettings.Theme = "Treetop Mode";
-          updateDisplay("Treetop");
-          let [code, response] = await sendRequest("POST", "me/settings", {update: "display", value: updatedSettings});
-          if (code == 200) {
-            
-          } else {
-            showPopUp("Error Updating Theme", response, [["Okay", "var(--grayColor)"]]);
-            findI("theme" + account.Settings.Display.Theme.replace(/ Mode/g, "")).checked = true;
-            updateDisplay(account.Settings.Display.Theme.replace(/ Mode/g, ""));
-          }
-        }
-      });
-      findI("embedYT").checked = account.Settings.Display["Embed YouTube Videos"];
-      findI("embedTwitch").checked = account.Settings.Display["Embed Twitch Streams"]; findI("embedGif").checked = account.Settings.Display["Embed GIFs"];
-      findI("embedYT").addEventListener("change", async function() {
-        let updatedSettings = account.Settings.Display;
-        updatedSettings["Embed YouTube Videos"] = findI("embedYT").checked;
-        let [code, response] = await sendRequest("POST", "me/settings", { update: "display", value: updatedSettings });
-        if (code != 200) {
-          showPopUp("An Error Occured", response, [["Okay", "var(--themeColor)"]]);
-        }
-      });
-      findI("embedTwitch").addEventListener("change", async function() {
-        let updatedSettings = account.Settings.Display;
-        updatedSettings["Embed Twitch Streams"] = findI("embedTwitch").checked;
-        let [code, response] = await sendRequest("POST", "me/settings", { update: "display", value: updatedSettings });
-        if (code != 200) {
-          showPopUp("An Error Occured", response, [["Okay", "var(--themeColor)"]]);
-        }
-      });
-      findI("embedGif").addEventListener("change", async function() {
-        let updatedSettings = account.Settings.Display;
-        updatedSettings["Embed GIFs"] = findI("embedGif").checked;
-        let [code, response] = await sendRequest("POST", "me/settings", { update: "display", value: updatedSettings });
-        if (code != 200) {
-          showPopUp("An Error Occured", response, [["Okay", "var(--themeColor)"]]);
-        }
-      });
+      for (var i in dispOptions) {
+        addDispOption(dispOptions[i]);
+      }
     },
     blocked: async function() {
       let blockedHolder = createElement("settingsHolder-blocked", "div", "pageHolder");
@@ -617,7 +499,37 @@ pages.settings = function() {
   }
   changeSettingsTab("account");
 };
-
+function addThemeOption(name) {
+  let thisThemeOption = createElement("", "div", findI("themeSelector"));
+  thisThemeOption.innerHTML += `<input type="radio" name="theme" value="${name}" id="theme${name.replace(/\s/g,"")}"><label for="theme${name.replace(/\s/g,"")}" class="radioLabel">${name}</label>`;
+  findI("theme" + name.replace(/\s/g,"")).checked = (account.Settings.Display.Theme == name);
+  findI("theme" + name.replace(/\s/g,"")).addEventListener("change", async function() {
+    if (findI("theme" + name.replace(/\s/g,"")).checked) {
+      let updatedSettings = account.Settings.Display;
+      updatedSettings.Theme = name;
+      updateDisplay(name);
+      let [code, response] = await sendRequest("POST", "me/settings", { update: "display", value: updatedSettings });
+      if (code != 200) {
+        showPopUp("Error Updating Theme", response, [["Okay", "var(--grayColor)"]]);
+        findI("theme" + account.Settings.Display.Theme).checked = true;
+        updateDisplay(account.Settings.Display.Theme);
+      }
+    }
+  });
+}
+function addDispOption(name) {
+  let thisDispOption = createElement("", "div", findI("dispSelector"));
+  thisDispOption.innerHTML = `<input type="checkbox" name="theme" id="${name.replace(/\s/g, "")}"><label for="${name.replace(/\s/g, "")}" class="radioLabel">${name}</label>`;
+  findI(name.replace(/\s/g, "")).checked = (account.Settings.Display[name]);
+  findI(name.replace(/\s/g, "")).addEventListener("change", async function() {
+    let updatedSettings = account.Settings.Display;
+    updatedSettings[name] = findI(name.replace(/\s/g, "")).checked;
+    let [code, response] = await sendRequest("POST", "me/settings", { update: "display", value: updatedSettings });
+    if (code != 200) {
+      showPopUp("An Error Occured", response, [["Okay", "var(--themeColor)"]]);
+    }
+  });
+}
 /*
 let newWin = null;
 if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) == true) {

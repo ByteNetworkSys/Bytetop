@@ -613,8 +613,8 @@ function decideProfilePic(data) {
   return assetURL + "ProfileImages/" + ending;
 }
 function changeCounter(el, num) {
-  var _x = el;
-  var oldNum = parseInt(_x.getAttribute("realnum"), 10);
+  let _x = el;
+  let oldNum = parseInt(_x.getAttribute("realnum"), 10);
   num = parseInt(num, 10);
   _x.setAttribute("realnum", num);
   _x.setAttribute("title", num.toLocaleString());
@@ -1018,7 +1018,7 @@ async function updateToSignedIn(response) {
   account.Settings = account.Settings || {};
   account.Settings.Display = account.Settings.Display || {};
   account.Settings.Display.Theme = account.Settings.Display.Theme || "Dark Mode";
-  updateDisplay(account.Settings.Display.Theme.replace(" Mode", ""));
+  updateDisplay(account.Settings.Display.Theme);
   if (data.restored != null) {
     showPopUp("Account Restored!", "Your Photop account has been restored. <b>Welcome Back!</b>", [["Okay", "var(--grayColor)"]]);
   }
@@ -2347,7 +2347,7 @@ function updateDisplay(type) {
       setCSSVar("--themeColor", "#eb6123");
       particles = null;
       break;
-    case "Treetop":
+    case "Snowtop":
       setCSSVar("--leftSidebarColor", "#262630");
       setCSSVar("--pageColor", "url('/Images/Holidays/FunSnowPile.png')");
       setCSSVar("--pageColor2", "#151617");
@@ -2394,7 +2394,7 @@ function createParticle() {
 
 if (getLocalStore("display") != null) {
   account.Settings = { Display: JSON.parse(getLocalStore("display")) };
-  updateDisplay(account.Settings.Display.Theme.replace(" Mode", ""));
+  updateDisplay(account.Settings.Display.Theme);
 }
 /*
 if (getLocalStore("lastUpdateView") != "PhotopRevamp") {
