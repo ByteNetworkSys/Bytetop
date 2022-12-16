@@ -386,6 +386,7 @@ pages.settings = function() {
       let displayHolder = createElement("settingsHolder-display", "div", "pageHolder");
       displayHolder.innerHTML = `<div class="settingsSection">
   <div class="settingsTitle">Theme</div>
+  <input type="radio" name="theme" value="Treetop" id="themeTreetop"><label for="themeTreetop" class="radioLabel">Snowtop</label>
   <input type="radio" name="theme" value="Dark" id="themeDark"><label for="themeDark" class="radioLabel">Dark</label>
   <input type="radio" name="theme" value="Light" id="themeLight"><label for="themeLight" class="radioLabel">Light</label>
   <input type="radio" name="theme" value="Bootop" id="themeBootop"><label for="themeBootop" class="radioLabel" style="display: none">Bootop</label>
@@ -485,11 +486,11 @@ pages.settings = function() {
           }
         }
       });
-      findI("themeBootop").addEventListener("change", async function () {
-        if (findI("themeBootop").checked) {
+      findI("themeTreetop").addEventListener("change", async function () {
+        if (findI("themeTreetop").checked) {
           let updatedSettings = account.Settings.Display;
-          updatedSettings.Theme = "Bootop Mode";
-          updateDisplay("Bootop");
+          updatedSettings.Theme = "Treetop Mode";
+          updateDisplay("Treetop");
           let [code, response] = await sendRequest("POST", "me/settings", {update: "display", value: updatedSettings});
           if (code == 200) {
             

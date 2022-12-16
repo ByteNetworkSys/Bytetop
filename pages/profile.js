@@ -107,8 +107,8 @@ pages.profile = async function() {
   findC("profileFollow").setAttribute("userid", user._id);
   findC("profileDate").innerHTML = `${getSVG("calendar")} <span class="profileDateSpan">Joined <b>${formatDate(user.CreationTime)}</b>`
   findC("profileDateSpan").title = formatFullDate(user.CreationTime);
-  findI("profileFollowerCount").innerHTML = `<span class="profileCountNumber" count="followerCount" userid="${user._id}">${user.ProfileData.Followers || 0}</span> <span class="profileFollowLabel">${(user.ProfileData.Followers == 1 ? "Follower" : "Followers")}</span>`
-  findI("profileFollowingCount").innerHTML = `<span class="profileCountNumber" count="followingCount" userid="${user._id}">${user.ProfileData.Following || 0}</span> <span class="profileFollowLabel">Following</span>`
+  findI("profileFollowerCount").innerHTML = `<span class="profileCountTicker"><span class="profileCountNumber" count="followerCount" userid="${user._id}" realnum="${user.ProfileData.Followers || 0}" title="${(user.ProfileData.Followers || 0).toLocaleString()}">${abbr(user.ProfileData.Followers || 0)}</span></span> <span class="profileFollowLabel">${(user.ProfileData.Followers == 1 ? "Follower" : "Followers")}</span>`
+  findI("profileFollowingCount").innerHTML = `<span class="profileCountTicker"><span class="profileCountNumber" count="followingCount" userid="${user._id}" realnum="${user.ProfileData.Following || 0}" title="${(user.ProfileData.Following || 0).toLocaleString()}">${abbr(user.ProfileData.Following || 0)}</span></span> <span class="profileFollowLabel">Following</span>`
   tempListen(findI("profileFollowerCount"), "click", function() {
     modifyParams("user", user._id);
     setPage("followers");
@@ -200,12 +200,12 @@ pages.profile = async function() {
           user.isFollowing = true;
           followButton.textContent = "Unfollow";
           followButton.style.background = "#FF5C5C";
-          followCount.textContent++;
+          changeCounter(followCount, parseInt(followCount.getAttribute("realnum"),10)+1);
         } else {
           user.isFollowing = false;
           followButton.textContent = "Follow";
           followButton.style.background = "var(--themeColor)";
-          followCount.textContent--;
+          changeCounter(followCount, parseInt(followCount.getAttribute("realnum"),10)-1);
         }
       }
       if (followButton.textContent == "Follow") {

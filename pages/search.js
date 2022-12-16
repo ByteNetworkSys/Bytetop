@@ -8,7 +8,7 @@ pages.search = function () {
   findI("searchBar").addEventListener("keydown", async function (e) {
     if (e.key == "Enter") {
       findI("searchResults").innerHTML = "";
-      let [code, response] = await sendRequest("GET", "/user/search?term=" + findI("searchBar").value.replace(/\s/g, "") + "&amount=15");
+      let [code, response] = await sendRequest("GET", "/user/search?term=" + findI("searchBar").value + "&amount=15");
       if (code == 200) {
         let data = JSON.parse(response);
         let searchResultHolder = findI("searchResults");

@@ -108,7 +108,7 @@ modules.actions = function() {
           return;
         }
         function updateLike(type) {
-          let likeAmount = button.parentElement.lastChild;
+          let likeAmount = findI("likes" + post.id);
           let icon = button.querySelector("svg").querySelector("path");
           let svg = button.querySelector("svg");
           if (type == "like") {
@@ -116,7 +116,7 @@ modules.actions = function() {
             button.parentElement.style.color = "#FF5786";
             icon.setAttribute("fill", "#FF5786");
             icon.setAttribute("stroke", "#FF5786");
-            likeAmount.textContent++;
+            changeCounter(likeAmount, parseInt(likeAmount.getAttribute("realnum"),10)+1);
             svg.style.animation = "like 0.8s";
             setTimeout(function() {
               svg.style.animation = null;
@@ -126,7 +126,7 @@ modules.actions = function() {
             button.parentElement.style.removeProperty("color");
             icon.removeAttribute("fill");
             icon.setAttribute("stroke", "#999");
-            likeAmount.textContent--;
+            changeCounter(likeAmount, parseInt(likeAmount.getAttribute("realnum"),10)-1);
           }
         }
         if (button.hasAttribute("isLiked") == false) {
@@ -278,7 +278,7 @@ modules.actions = function() {
         if (text.length > limit) {
           if (limit == 200) {
             //showPopUp("That's Too Long", `Please keep your chats to under ${limit} characters. However, with Photop Premium, you can send chats with up to 400 characters!`, [["Premium", "var(--premiumColor)", function() { setPage("premium"); }], ["Okay", "var(--grayColor)"]]);
-            showPopUp("That's Too Long", `Please keep your chats to under ${limit} characters. `, [["Okay", "var(--grayColor)"]]);
+            showPopUp("That's Too Long", `Please keep your chats to under ${limit} characters.`, [["Okay", "var(--grayColor)"]]);
           } else {
             showPopUp("That's Too Long", `Please keep your chats to under ${limit} characters.`, [["Okay", "var(--grayColor)"]]);
           }
@@ -351,26 +351,27 @@ modules.actions = function() {
           mainElement = spanChildren[spanChildren.length - 1];
           mainElement.setAttribute("contenteditable", "true");
           mainElement.focus();
-          console.log("Main element: ", mainElement);
-          let oldText = mainElement.textContent;
+          const oldText = mainElement.textContent;
+          
+          const editButton = createElement("editChatButton", 'button', mainElement.parentElement);
+          editButton.innerText = "Save";
+          tempListen(editButton, 'click', saveChat);
 
           tempListen(mainElement, 'keypress', async event => {
             if (event.key == "Enter") {
-              event.preventDefault()
-              let [code, response] = await sendRequest("POST", `chats/edit?chatid=${chat.id} `, { text: mainElement.textContent })
+              saveChat();
+            }
+          });
+
+          async function saveChat(){
+              let [code, response] = await sendRequest("POST", `chats/edit?chatid=${chat.id} `, { text: mainElement.textContent });
               if (code == 200) {
-                console.log("Success!")
                 mainElement.setAttribute("contenteditable", "false");
                 chat.setAttribute("type", "chat");
               } else {
                 showPopUp("Oops! Something happened!", response, [["Okay", "var(--themeColor)"]])
               }
-            }
-          });
-
-          tempListen(mainElement, 'blur', () => {
-            mainElement.setAttribute("contenteditable", "false");
-          });
+          }
         }
 
         function deleteChat() {

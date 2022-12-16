@@ -103,18 +103,13 @@ function updateProfileSub() {
         user = user || {};
         switch (data.type) {
           case "follow":
+            let followerUser = recentUsers[data.userID] || {};
             user.ProfileData = user.ProfileData || {};
-            user.ProfileData.Followers = user.ProfileData.Followers || 0;
-            user.ProfileData.Followers += data.change;
+            followerUser.ProfileData = followerUser.ProfileData || {};
+            user.ProfileData.Followers = (user.ProfileData.Followers || 0) + data.change; 
+            followerUser.ProfileData.Following = (followerUser.ProfileData.Following || 0) + data.change;
             if (data.userID == userID) {
-              user.isFollowing = user.isFollowing || false;
-              account.ProfileData = account.ProfileData || {};
-              account.ProfileData.Following = account.ProfileData.Following || 0;
-              account.ProfileData.Following += data.change;
-              if (user.isFollowing == Math.max(data.change, 0)) {
-                return;
-              }
-              user.isFollowing = !user.isFollowing;
+              user.isFollowing = data.change == true;
               let followPreviewButton = body.querySelector(".previewFollowButton[userid='" + data._id + "']");
               if (followPreviewButton != null) {
                 if (user.isFollowing == true) {
@@ -138,11 +133,11 @@ function updateProfileSub() {
             }
             let followerCounts = body.querySelectorAll("[count='followerCount'][userid='" + data._id + "']");
             for (let i = 0; i < followerCounts.length; i++) {
-              followerCounts[i].textContent = (parseInt(followerCounts[i].textContent) || 0) + data.change;
+              changeCounter(followerCounts[i], user.ProfileData.Followers);
             }
             let followingCounts = body.querySelectorAll("[count='followingCount'][userid='" + data.userID + "']");
             for (let i = 0; i < followingCounts.length; i++) {
-              followingCounts[i].textContent = (parseInt(followingCounts[i].textContent) || 0) + data.change;
+              changeCounter(followingCounts[i], followerUser.ProfileData.Following);
             }
         }
       }
@@ -209,10 +204,10 @@ modules.profilepreview = async function(element, getID) {
     <div class="previewUsername">${getRoleHTML(data, 5)}<span style="font-size: 30px;">${data.User}</span></div>
     <div class="previewFollow">
       <div tabindex="0" class="previewCount" onclick="modifyParams('user', '` + getID + `'); setPage('followers'); closeProfilePreview();">
-        <span class="previewCountNumber" count="followerCount" userid="${data._id}"'>${abbr(data.ProfileData.Followers) || 0}</span> ${data.ProfileData.Followers == 1 ? "Follower" : "Followers"}
+        <span class="previewCountTicker"><span class="previewCountNumber" count="followerCount" userid="${data._id}" realnum="${data.ProfileData.Followers || 0}" title="${(data.ProfileData.Followers || 0).toLocaleString()}">${abbr(data.ProfileData.Followers) || 0}</span></span> ${data.ProfileData.Followers == 1 ? "Follower" : "Followers"}
       </div>
       <div tabindex="0" class="previewCount" onclick="modifyParams('user', '` + getID + `'); setPage('following'); closeProfilePreview();">
-        <span class="previewCountNumber" count="followingCount" userid="${data._id}">${abbr(data.ProfileData.Following) || 0}</span> Following
+        <span class="previewCountTicker"><span class="previewCountNumber" count="followingCount" userid="${data._id}" realnum="${data.ProfileData.Following || 0}" title="${(data.ProfileData.Following || 0).toLocaleString()}">${abbr(data.ProfileData.Following) || 0}</span></span> Following
       </div>
     </div>
       <div class="previewBio"></div>
@@ -245,12 +240,12 @@ modules.profilepreview = async function(element, getID) {
         data.isFollowing = true;
         followButton.textContent = "Unfollow";
         followButton.style.background = "#FF5C5C";
-        followCount.textContent++;
+        changeCounter(followCount, parseInt(followCount.textContent,10)+1);
       } else {
         data.isFollowing = false;
         followButton.textContent = "Follow";
         followButton.style.background = "var(--themeColor)";
-        followCount.textContent--;
+        changeCounter(followCount, parseInt(followCount.textContent,10)-1);
       }
     }
     if (followButton.textContent == "Follow") {
@@ -283,6 +278,18 @@ modules.profilepreview = async function(element, getID) {
         closeProfilePreview();
       });
     }
+  }
+
+  previewRect = preview.getBoundingClientRect();
+  if (previewRect.left + previewRect.width > window.innerWidth) {
+    preview.style.right = "8px";
+    preview.style.left = "";
+    preview.style.transformOrigin = "center";
+  }
+  if (previewRect.top + previewRect.height > window.innerHeight) {
+    preview.style.bottom = "8px";
+    preview.style.top = "";
+    preview.style.transformOrigin = "center";
   }
 }
 

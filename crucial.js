@@ -47,6 +47,8 @@ let main = findC("main");
 let pageHolder = findC("pageHolder");
 let sidebarButtons = findI("sidebarButtons");
 
+let isMobile = false;
+
 let connectingUI = findI("connectingDisplay");
 socket.onopen = function() {
   connectingUI.style.display = "none";
@@ -567,7 +569,7 @@ function setPostUpdateSub() {
           // data.userID - userID
           // data.change - Like Change (1, -1)
           let button = post.querySelector(".postButton[type='like']");
-          let likeAmount = button.parentElement.lastChild;
+          let likeAmount = findI("likes" + post.id);
           if (data.userID == userID) {
             let icon = button.querySelector("svg").querySelector("path");
             if (data.change == 1) {
@@ -588,7 +590,7 @@ function setPostUpdateSub() {
               icon.setAttribute("stroke", "#999");
             }
           }
-          likeAmount.textContent = parseInt(likeAmount.textContent) + data.change;
+          changeCounter(likeAmount, parseInt(likeAmount.getAttribute("realnum"),10) + data.change);
           break;
         case "delete":
           if (post.style.height == "100%" && window.closeMobileChat != null) {
@@ -610,86 +612,27 @@ function decideProfilePic(data) {
   }
   return assetURL + "ProfileImages/" + ending;
 }
-
-function updateDisplay(type) {
-  switch (type) {
-    case "Light":
-      setCSSVar("--leftSidebarColor", "#E8E8E8");
-      setCSSVar("--pageColor", "#E6E9EB");
-      setCSSVar("--contentColor", "#DFDFE6");
-      setCSSVar("--contentColor2", "#D9D9E4");
-      setCSSVar("--contentColor3", "#D2D2E0");
-      setCSSVar("--borderColor", "#D8D8D8");
-      setCSSVar("--fontColor", "#000000");
-      setCSSVar("--themeColor", "#5AB7FA");
-      break;
-    /*
-    case "Pride":
-      setCSSVar("--leftSidebarColor", "#262630");
-      setCSSVar("--pageColor", "linear-gradient(to bottom, red, orange, yellow, green, blue, purple)");
-      setCSSVar("--contentColor", "#EBEBEB");
-      setCSSVar("--contentColor2", "#E3E3E3");
-      setCSSVar("--contentColor3", "#D9D9D9");
-      setCSSVar("--borderColor", "#323242");
-      setCSSVar("--fontColor", "black");
-      setCSSVar("--themeColor", "tomato");
-      break;
-      */
-    case "Hacker":
-      setCSSVar("--leftSidebarColor", "black");
-      setCSSVar("--pageColor", "black");
-      setCSSVar("--contentColor", "black");
-      setCSSVar("--contentColor2", "black");
-      setCSSVar("--contentColor3", "black");
-      setCSSVar("--borderColor", "black");
-      setCSSVar("--fontColor", "white");
-      setCSSVar("--themeColor", "lime");
-      break;
-    case "Blood Moon":
-      setCSSVar("--leftSidebarColor", "black");
-      setCSSVar("--pageColor", "linear-gradient(to bottom, #5c0701, black)");
-      setCSSVar("--contentColor", "#831100");
-      setCSSVar("--contentColor2", "#942200");
-      setCSSVar("--contentColor3", "#a52300");
-      setCSSVar("--borderColor", "#861500");
-      setCSSVar("--fontColor", "white");
-      setCSSVar("--themeColor", "tomato");
-      break;
-    case "Under The Sea":
-      setCSSVar("--leftSidebarColor", "black");
-      setCSSVar("--pageColor", "linear-gradient(to bottom, #4ecbef, #0062fe)");
-      setCSSVar("--contentColor", "#0056d6");
-      setCSSVar("--contentColor2", "#0061fe");
-      setCSSVar("--contentColor3", "#3a87fe");
-      setCSSVar("--borderColor", "#2ea4fd");
-      setCSSVar("--fontColor", "white");
-      setCSSVar("--themeColor", "#52d6fc");
-      break;
-    case "Bootop":
-      setCSSVar("--leftSidebarColor", "#262630");
-      setCSSVar("--pageColor", "#151617");
-      setCSSVar("--contentColor", "#1f1f28");
-      setCSSVar("--contentColor2", "#24242e");
-      setCSSVar("--contentColor3", "#2a2a37");
-      setCSSVar("--borderColor", "#323242");
-      setCSSVar("--fontColor", "#ffffff");
-      setCSSVar("--themeColor", "#eb6123");
-      break;
-    default:
-      setCSSVar("--leftSidebarColor", "#262630");
-      setCSSVar("--pageColor", "#151617");
-      setCSSVar("--contentColor", "#1f1f28");
-      setCSSVar("--contentColor2", "#24242e");
-      setCSSVar("--contentColor3", "#2a2a37");
-      setCSSVar("--borderColor", "#323242");
-      setCSSVar("--fontColor", "#ffffff");
-      setCSSVar("--themeColor", "#5AB7FA");
-      break;
+function changeCounter(el, num) {
+  var _x = el;
+  var oldNum = parseInt(_x.getAttribute("realnum"), 10);
+  num = parseInt(num, 10);
+  _x.setAttribute("realnum", num);
+  _x.setAttribute("title", num.toLocaleString());
+  if (abbr(oldNum) != num) {
+    _x.innerHTML = (oldNum < num ? abbr(oldNum) + "<br>" + abbr(num) : abbr(num) + "<br>" + abbr(oldNum));
+    _x.style.marginTop = (oldNum < num ? "0" : "-15px");
+    setTimeout(function () {
+      _x.style.transition = "0.2s";
+      _x.style.marginTop = (oldNum < num ? "-15px" : "0");
+      setTimeout(function () {
+        _x.innerHTML = abbr(num);
+        _x.style.transition = "0s";
+        setTimeout(function () {
+          _x.style.marginTop = "0";
+        }, 16);
+      }, 200);
+    }, 16);
   }
-}
-if (getLocalStore("display") != null) {
-  account.Settings = { Display: JSON.parse(getLocalStore("display")) };
-  updateDisplay(account.Settings.Display.Theme.replace(" Mode", ""));
 }
 
 async function auth() {
@@ -738,14 +681,14 @@ async function init() {
   await loadNeededModules();
 
   if (userID != null) {
-    if (getParam("post") != null) {
+    if (getParam("group") != null) {
+      setPage("group");
+    } else if (getParam("post") != null) {
       showPost(getParam("post"));
     } else if (getParam("chat") != null) {
       showChat(null, getParam("chat"));
     } else if (getParam("user") != null) {
       setPage("profile");
-    } else if (getParam("group") != null) {
-      setPage("group");
     } else if (getParam("j") != null) {
       setPage("group");
     } else if (window.location.hash == "") {
@@ -1956,9 +1899,9 @@ socket.remotes.stream = async function(data) {
           }
           postChatHolder.scrollTo(scrollToParams);
         }
-        let chatCount = parent.querySelector(".postChatCount");
+        let chatCount = findI("chats" + chat.PostID);
         if (chatCount != null) {
-          chatCount.innerText++;
+          changeCounter(chatCount, parseInt(chatCount.getAttribute("realnum"),10)+1);
         }
       }
       break;
@@ -1998,7 +1941,7 @@ socket.remotes.stream = async function(data) {
       }
       let chatCount = delChat.closest(".post").querySelector(".postChatCount");
       if (chatCount != null) {
-        chatCount.innerText--;
+        changeCounter(chatCount, parseInt(chatCount.getAttribute("realnum"),10)-1);
       }
       delChat.remove();
       break;
@@ -2284,7 +2227,6 @@ body.addEventListener("touchmove", function(e) {
 }, { passive: false });
 
 // MOBILE RESIZE
-let isMobile = false;
 function isTouchDevice() {
   return (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0));
 }
@@ -2325,6 +2267,135 @@ if (isTouchDevice() == true && screen.width < 550 || getParam("embed") == "mobil
   }
 }
 
+let particles = null;
+function updateDisplay(type) {
+  switch (type) {
+    case "Light":
+      setCSSVar("--leftSidebarColor", "#E8E8E8");
+      setCSSVar("--pageColor", "#E6E9EB");
+      setCSSVar("--pageColor2", "var(--pageColor)");
+      setCSSVar("--sidebarBG", "var(--pageColor)");
+      setCSSVar("--contentColor", "#DFDFE6");
+      setCSSVar("--contentColor2", "#D9D9E4");
+      setCSSVar("--contentColor3", "#D2D2E0");
+      setCSSVar("--borderColor", "#D8D8D8");
+      setCSSVar("--fontColor", "#000000");
+      setCSSVar("--themeColor", "#5AB7FA");
+      particles = null;
+      break;
+    /*
+    case "Pride":
+      setCSSVar("--leftSidebarColor", "#262630");
+      setCSSVar("--pageColor", "linear-gradient(to bottom, red, orange, yellow, green, blue, purple)");
+      setCSSVar("--contentColor", "#EBEBEB");
+      setCSSVar("--contentColor2", "#E3E3E3");
+      setCSSVar("--contentColor3", "#D9D9D9");
+      setCSSVar("--borderColor", "#323242");
+      setCSSVar("--fontColor", "black");
+      setCSSVar("--themeColor", "tomato");
+      break;
+      */
+    case "Hacker":
+      setCSSVar("--leftSidebarColor", "black");
+      setCSSVar("--pageColor", "black");
+      setCSSVar("--pageColor2", "var(--pageColor)");
+      setCSSVar("--sidebarBG", "var(--pageColor)");
+      setCSSVar("--contentColor", "black");
+      setCSSVar("--contentColor2", "black");
+      setCSSVar("--contentColor3", "black");
+      setCSSVar("--borderColor", "black");
+      setCSSVar("--fontColor", "white");
+      setCSSVar("--themeColor", "lime");
+      particles = null;
+      break;
+    case "Blood Moon":
+      setCSSVar("--leftSidebarColor", "black");
+      setCSSVar("--pageColor", "linear-gradient(to bottom, #5c0701, black)");
+      setCSSVar("--pageColor2", "var(--pageColor)");
+      setCSSVar("--sidebarBG", "var(--pageColor)");
+      setCSSVar("--contentColor", "#831100");
+      setCSSVar("--contentColor2", "#942200");
+      setCSSVar("--contentColor3", "#a52300");
+      setCSSVar("--borderColor", "#861500");
+      setCSSVar("--fontColor", "white");
+      setCSSVar("--themeColor", "tomato");
+      particles = null;
+      break;
+    case "Under The Sea":
+      setCSSVar("--leftSidebarColor", "black");
+      setCSSVar("--pageColor", "linear-gradient(to bottom, #4ecbef, #0062fe)");
+      setCSSVar("--pageColor2", "var(--pageColor)");
+      setCSSVar("--sidebarBG", "var(--pageColor)");
+      setCSSVar("--contentColor", "#0056d6");
+      setCSSVar("--contentColor2", "#0061fe");
+      setCSSVar("--contentColor3", "#3a87fe");
+      setCSSVar("--borderColor", "#2ea4fd");
+      setCSSVar("--fontColor", "white");
+      setCSSVar("--themeColor", "#52d6fc");
+      particles = null;
+      break;
+    case "Bootop":
+      setCSSVar("--leftSidebarColor", "#262630");
+      setCSSVar("--pageColor", "#151617");
+      setCSSVar("--pageColor2", "var(--pageColor)");
+      setCSSVar("--sidebarBG", "var(--pageColor)");
+      setCSSVar("--contentColor", "#1f1f28");
+      setCSSVar("--contentColor2", "#24242e");
+      setCSSVar("--contentColor3", "#2a2a37");
+      setCSSVar("--borderColor", "#323242");
+      setCSSVar("--fontColor", "#ffffff");
+      setCSSVar("--themeColor", "#eb6123");
+      particles = null;
+      break;
+    case "Treetop":
+      setCSSVar("--leftSidebarColor", "#262630");
+      setCSSVar("--pageColor", "url('/Images/Holidays/FunSnowPile.png')");
+      setCSSVar("--pageColor2", "#151617");
+      if (isMobile) {
+        setCSSVar("--sidebarBG", "var(--pageColor2)");
+      } else {
+        setCSSVar("--sidebarBG", "transparent");
+      }
+      setCSSVar("--contentColor", "#1f1f28");
+      setCSSVar("--contentColor2", "#24242e");
+      setCSSVar("--contentColor3", "#2a2a37");
+      setCSSVar("--borderColor", "#323242");
+      setCSSVar("--fontColor", "#ffffff");
+      setCSSVar("--themeColor", "#f13333");
+      particles = "snow";
+      break;
+    default:
+      setCSSVar("--leftSidebarColor", "#262630");
+      setCSSVar("--pageColor", "#151617");
+      setCSSVar("--pageColor2", "var(--pageColor)");
+      setCSSVar("--contentColor", "#1f1f28");
+      setCSSVar("--contentColor2", "#24242e");
+      setCSSVar("--contentColor3", "#2a2a37");
+      setCSSVar("--borderColor", "#323242");
+      setCSSVar("--fontColor", "#ffffff");
+      setCSSVar("--themeColor", "#5AB7FA");
+      particles = null;
+      break;
+  }
+}
+
+setInterval(function () {
+  if (particles != null) {
+    createParticle();
+  }
+}, (isMobile ? 1500 : 500));
+function createParticle() {
+  let thisParticle = createElement("particle-" + particles, "div", findC("body"));
+  thisParticle.style.left = (Math.random()*100) + "%";
+  setTimeout(function () {
+    thisParticle.remove();
+  }, 15000);
+}
+
+if (getLocalStore("display") != null) {
+  account.Settings = { Display: JSON.parse(getLocalStore("display")) };
+  updateDisplay(account.Settings.Display.Theme.replace(" Mode", ""));
+}
 /*
 if (getLocalStore("lastUpdateView") != "PhotopRevamp") {
   let zoomedImageBlur = createElement("backBlur", "div", document.body);

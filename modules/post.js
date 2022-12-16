@@ -16,19 +16,19 @@ modules.post = function(parent, post, user, props, embeds) {
         <button class="postButton" type="like">
           <svg viewBox="0 0 900 900" fill="none" xmlns="http://www.w3.org/2000/svg"> <path fill-rule="evenodd" clip-rule="evenodd" d="M62.9086 366.407L66.4441 369.942L370.5 673.998L674.556 369.942L678.091 366.407C760.883 283.615 760.883 149.385 678.091 66.5934L673.849 62.3507C591.058 -20.4404 456.827 -20.4404 374.036 62.3507L370.5 65.8862L366.965 62.3507C284.173 -20.4404 149.942 -20.4404 67.1513 62.3507L62.9086 66.5934C-19.8826 149.385 -19.8826 283.615 62.9086 366.407Z" stroke="#999" stroke-width="60" transform="translate(79.5, 113)"></path> </svg>
         </button>
-        ${post.Likes || 0}
+        <span class="postStatTicker"><span class="postStatNumber" realnum="${post.Likes || 0}" title="${(post.Likes || 0).toLocaleString()}" id="likes${post._id}">${abbr(post.Likes) || 0}</span></span>
       </div>
       <div class="postStat">
         <button class="postButton" type="quote">
           <svg viewBox="0 0 839 595" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="196" cy="398.007" r="168.5" stroke="#999999" stroke-width="55"/> <circle cx="643" cy="398.007" r="168.5" stroke="#999999" stroke-width="55"/> <path d="M28.5986 386V261C28.5986 132.318 132.916 28 261.599 28V28" stroke="#999999" stroke-width="55"/> <path d="M475.599 386V261C475.599 132.318 579.916 28 708.599 28V28" stroke="#999999" stroke-width="55"/> </svg>
         </button>
-        ${post.Quotes || 0}
+        ${abbr(post.Quotes) || 0}
       </div>
       <div class="postStat" style="color: var(--themeColor)">
         <button class="postButton" type="actionchat">
           <svg viewBox="0 0 798 512" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M96.0002 271.985L121.627 281.962L123.5 277.149V271.985H96.0002ZM30.6666 439.799L5.04025 429.822L5.04025 429.822L30.6666 439.799ZM74.5064 480.174L62.458 455.453L62.458 455.453L74.5064 480.174ZM208.225 415V387.5H201.88L196.176 390.28L208.225 415ZM123.5 73.0005C123.5 63.3355 131.335 55.5005 141 55.5005V0.500488C100.96 0.500488 68.5002 32.9598 68.5002 73.0005H123.5ZM123.5 271.985V73.0005H68.5002V271.985H123.5ZM56.293 449.776L121.627 281.962L70.3738 262.008L5.04025 429.822L56.293 449.776ZM62.458 455.453C61.1593 456.086 60.3494 456.059 59.8193 455.967C59.1257 455.847 58.2513 455.468 57.438 454.718C56.6246 453.969 56.1749 453.129 55.9982 452.448C55.8632 451.927 55.7689 451.122 56.293 449.776L5.04025 429.822C-14.6037 480.279 37.882 528.616 86.5548 504.894L62.458 455.453ZM196.176 390.28L62.458 455.453L86.5548 504.894L220.273 439.721L196.176 390.28ZM725 387.5H208.225V442.5H725V387.5ZM742.5 370C742.5 379.665 734.665 387.5 725 387.5V442.5C765.041 442.5 797.5 410.041 797.5 370H742.5ZM742.5 73.0005V370H797.5V73.0005H742.5ZM725 55.5005C734.665 55.5005 742.5 63.3355 742.5 73.0005H797.5C797.5 32.9598 765.041 0.500488 725 0.500488V55.5005ZM141 55.5005H725V0.500488H141V55.5005Z" fill="var(--themeColor)"/> </svg>
         </button>
-        <span class="postChatCount">${post.Chats || 0}</span>
+        <span class="postStatTicker"><span class="postStatNumber postChatCount" id="chats${post._id}" realnum="${post.Chats || 0}" title="${(post.Chats || 0).toLocaleString()}">${post.Chats || 0}</span></span>
       </div>
       <div class="postStat">
         <button class="postButton" type="extra">
