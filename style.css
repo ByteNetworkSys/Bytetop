@@ -2640,12 +2640,13 @@ td {
   border-radius: 4px;
 }
 .particle-snow {
-  background: white;
+  position: fixed;
   width: 5px;
   height: 5px;
-  position: fixed;
   border-radius: 100%;
   z-index: 999;
+  background: white;
+  pointer-events: none;
   animation: particleSnow 15s linear, particleSnow2 15s ease;
 }
 @keyframes particleSnow {
