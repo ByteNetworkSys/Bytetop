@@ -2363,6 +2363,7 @@ function updateDisplay(type) {
       setCSSVar("--fontColor", "#ffffff");
       setCSSVar("--themeColor", "#f13333");
       particles = "snow";
+      document.body.classList.add('snowtop');
       break;
     default:
       setCSSVar("--leftSidebarColor", "#262630");

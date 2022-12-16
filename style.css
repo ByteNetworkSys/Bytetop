@@ -2665,3 +2665,17 @@ td {
     transform: translateX(5px);
   }
 }
+
+.snowtop{
+  animation: showSnowBg 1s ease;
+  background-position-y: 100%;
+}
+
+@keyframes showSnowBg {
+  from{
+    background-position-y: 500%;
+  }
+  to{
+    background-position-y: 100%;
+  }
+}
