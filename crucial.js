@@ -680,6 +680,14 @@ async function init() {
 
   await loadNeededModules();
 
+  if (getParam("connect") != null) {
+    if (userID != null) {
+      setPage("settings");
+    } else {
+      openLoginModal("signin", "Sign In");
+    }
+  }
+  
   if (userID != null) {
     if (getParam("group") != null) {
       setPage("group");
@@ -995,7 +1003,11 @@ async function updateToSignedIn(response) {
     // If function was called from signin/signup:
     setLocalStore("userID", data.user._id);
     setLocalStore("token", JSON.stringify(data.token));
-    refreshPage();
+    if (getParam("connect") == null) {
+      refreshPage();
+    } else {
+      setPage("settings");
+    }
     let sidebarButtonsChilds = sidebarButtons.children;
     for (let i = 0; i < sidebarButtonsChilds.length; i++) {
       sidebarButtonsChilds[i].classList.remove("hidden");
@@ -1177,8 +1189,8 @@ let bb = function(isPost) {
   o7.ad('(`{TEXT})', '<span style="font-family: monospace;">{TEXT}</span>');
   o7.ad('(^{TEXT})', '<sup>{TEXT}</sup>');
   o7.ad('{URL}', '<a href="{URL}" target="_blank" class="link" title="{URL}">{URL}</a>');
-  o7.ad('@{HEX}({TEXT}) ', '<span type="user" userid="{HEX}" class="mention" tabindex="0">@{TEXT}</span> ');
-  o7.ad('@{HEX}({TEXT})\n', '<span type="user" userid="{HEX}" class="mention" tabindex="0">@{TEXT}</span>\n');
+  o7.ad('@{HEX}"{TEXT}" ', '<span type="user" userid="{HEX}" class="mention" tabindex="0">@{TEXT}</span> ');
+  o7.ad('@{HEX}"{TEXT}"\n', '<span type="user" userid="{HEX}" class="mention" tabindex="0">@{TEXT}</span>\n');
   o7.ad('/Post_{HEX} ', '<span type="postlink" postid="{HEX}" class="post-embed" tabindex="0">/Post_{HEX}</span> ');
   o7.ad('/Post_{HEX}\n', '<span type="postlink" postid="{HEX}" class="post-embed" tabindex="0">/Post_{HEX}</span>\n');
   o7.ad('/Chat_{HEX} ', '<span type="chatlink" chatid="{HEX}" class="chat-embed" tabindex="0">/Chat_{HEX}</span> ');

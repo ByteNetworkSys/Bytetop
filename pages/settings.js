@@ -273,25 +273,28 @@ pages.settings = function() {
           }
         }
       });
-			
+
+      async function openSocialOAuth(social) {
+        let newWin = null;
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) == true) {
+          newWin = window.open("https://exotek.co", "_blank");
+        }
+        let [code, response] = await sendRequest("GET", "me/new/social?site=" + social);
+        if (code == 200) {
+          if (newWin == null) {
+            let left = (screen.width / 2) - (500 / 2);
+            let top = (screen.height / 2) - (600 / 2) - 100;
+            window.open(response, "social_link_authenticate", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=500, height=600, top=" + top + ", left=" + left);
+          } else {
+            newWin.location = response;
+          }
+        }
+      }
       let allSocials = Object.keys(socialLinkData);
       for (let i = 0; i < allSocials.length; i++) {
         let socialButton = createElement("profileSocialButton", "a", findI("socialRow"), { "background": socialLinkData[allSocials[i]][1], "content": "url(./icons/socials/" + allSocials[i] + ".svg)" });
         socialButton.addEventListener("click", async function() {
-          let newWin = null;
-          if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) == true) {
-            newWin = window.open("https://exotek.co", "_blank");
-          }
-          let [code, response] = await sendRequest("GET", "me/new/social?site=" + allSocials[i]);
-          if (code == 200) {
-            if (newWin == null) {
-              let left = (screen.width / 2) - (500 / 2);
-              let top = (screen.height / 2) - (600 / 2) - 100;
-              window.open(response, "social_link_authenticate", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=500, height=600, top=" + top + ", left=" + left);
-            } else {
-              newWin.location = Response;
-            }
-          }
+          openSocialOAuth(allSocials[i]);
         });
       }
       let socialKeys = Object.keys(account.ProfileData.Socials || {});
@@ -324,6 +327,11 @@ pages.settings = function() {
             thisSocial.style.opacity = 1;
           }
         });
+      }
+      if (getParam("connect") != null) {
+        showPopUp("Connect Account", "Click continue to connect your Photop account!", [["Continue", "var(--themeColor)", async function() {
+          openSocialOAuth(getParam("connect"));
+        }], ["Cancel", "var(--grayColor)"]]);
       }
 
       let visibility = findC("settingsVisibility");
@@ -387,22 +395,22 @@ pages.settings = function() {
     display: async function() {
       let displayHolder = createElement("settingsHolder-display", "div", "pageHolder");
       displayHolder.innerHTML = `<div class="settingsSection">
-  <div class="settingsTitle">Theme</div>
-  <div id="themeSelector"></div>
-</div>
-<div class="settingsSection">
-  <div class="settingsTitle">Embeds</div>
-  <div id="dispSelector"></div>
-</div>
-<div class="settingsSection">
-  <a class="settingsLink" href="${window.location.origin}/#tos">Terms of Service</a>
-  <a class="settingsLink" href="${window.location.origin}/#privacy">Privacy Policy</a>
-  <a class="settingsLink" href="${window.location.origin}/#rules">Photop Rules</a>
-  <a class="settingsLink" href="https://photop.live/?from=photopweb" target="_blank">About Photop</a>
-  <a class="settingsLink" href="https://twitter.com/PhotopMedia" target="_blank">Photop Twitter</a>
-  <a class="settingsLink" href="https://discord.com/invite/gnBVPbrAPd" target="_blank">Photop Discord</a>
-  <div style="font-size: 16px; text-align: center;">©2022 Exotek LLC - All rights reserved</div>
-</div>`;
+        <div class="settingsTitle">Theme</div>
+        <div id="themeSelector"></div>
+      </div>
+      <div class="settingsSection">
+        <div class="settingsTitle">Embeds</div>
+        <div id="dispSelector"></div>
+      </div>
+      <div class="settingsSection">
+        <a class="settingsLink" href="${window.location.origin}/#tos">Terms of Service</a>
+        <a class="settingsLink" href="${window.location.origin}/#privacy">Privacy Policy</a>
+        <a class="settingsLink" href="${window.location.origin}/#rules">Photop Rules</a>
+        <a class="settingsLink" href="https://photop.live/?from=photopweb" target="_blank">About Photop</a>
+        <a class="settingsLink" href="https://twitter.com/PhotopMedia" target="_blank">Photop Twitter</a>
+        <a class="settingsLink" href="https://discord.com/invite/gnBVPbrAPd" target="_blank">Photop Discord</a>
+        <div style="font-size: 16px; text-align: center;">©2022 Exotek LLC - All rights reserved</div>
+      </div>`;
       for (var i in themes) {
         addThemeOption(themes[i]);
       }

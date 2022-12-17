@@ -240,12 +240,12 @@ modules.profilepreview = async function(element, getID) {
         data.isFollowing = true;
         followButton.textContent = "Unfollow";
         followButton.style.background = "#FF5C5C";
-        changeCounter(followCount, parseInt(followCount.textContent,10)+1);
+        changeCounter(followCount, parseInt(followCount.getAttribute("realnum"),10)+1);
       } else {
         data.isFollowing = false;
         followButton.textContent = "Follow";
         followButton.style.background = "var(--themeColor)";
-        changeCounter(followCount, parseInt(followCount.textContent,10)-1);
+        changeCounter(followCount, parseInt(followCount.getAttribute("realnum"),10)-1);
       }
     }
     if (followButton.textContent == "Follow") {

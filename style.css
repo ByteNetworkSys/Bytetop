@@ -1357,7 +1357,6 @@ button:active {
   display: flex;
   flex-wrap: wrap;
   z-index: 600;
-  background: var(--pageColor2);
 }
 .profileFollowLabel {
   display: inline-block;
