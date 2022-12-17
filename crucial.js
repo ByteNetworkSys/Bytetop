@@ -682,7 +682,9 @@ async function init() {
 
   if (getParam("connect") != null) {
     if (userID != null) {
-      setPage("settings");
+      if (currentPage != "settings") {
+        setPage("settings");
+      }
     } else {
       openLoginModal("signin", "Sign In");
     }
@@ -1004,7 +1006,9 @@ async function updateToSignedIn(response) {
     setLocalStore("userID", data.user._id);
     setLocalStore("token", JSON.stringify(data.token));
     if (getParam("connect") == null) {
-      refreshPage();
+      if (currentPage != "settings") {
+        setPage("settings");
+      }
     } else {
       setPage("settings");
     }
