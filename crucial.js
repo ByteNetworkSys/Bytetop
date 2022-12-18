@@ -685,7 +685,7 @@ async function init() {
   }
   
   if (userID != null) {
-    if (currentPage == null) {
+    if (currentPage == "") {
       if (getParam("group") != null) {
         setPage("group");
       } else if (getParam("post") != null) {
@@ -2390,18 +2390,17 @@ function updateDisplay(type) {
   }
 }
 
-setInterval(function () {
-  if (particles != null) {
-    createParticle();
-  }
-}, (isMobile ? 1500 : 500));
 function createParticle() {
+  if (particles == null || !viewingTab) {
+    return;
+  }
   let thisParticle = createElement("particle-" + particles, "div", findC("body"));
   thisParticle.style.left = (Math.random()*100) + "%";
   setTimeout(function () {
     thisParticle.remove();
   }, 15000);
 }
+setInterval(createParticle, (isMobile ? 1500 : 500));
 
 if (getLocalStore("display") != null) {
   account.Settings = { Display: JSON.parse(getLocalStore("display")) };
