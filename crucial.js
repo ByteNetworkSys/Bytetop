@@ -680,31 +680,27 @@ async function init() {
 
   await loadNeededModules();
 
-  if (getParam("connect") != null) {
-    if (userID != null) {
-      if (currentPage != "settings") {
-        setPage("settings");
-      }
-    } else {
-      openLoginModal("signin", "Sign In");
-    }
+  if (getParam("connect") != null && userID == null) {
+    openLoginModal("signin", "Sign In");
   }
   
   if (userID != null) {
-    if (getParam("group") != null) {
-      setPage("group");
-    } else if (getParam("post") != null) {
-      showPost(getParam("post"));
-    } else if (getParam("chat") != null) {
-      showChat(null, getParam("chat"));
-    } else if (getParam("user") != null) {
-      setPage("profile");
-    } else if (getParam("j") != null) {
-      setPage("group");
-    } else if (window.location.hash == "") {
-      setPage("home");
-    } else {
-      setPage(window.location.hash.substring(1));
+    if (currentPage == null) {
+      if (getParam("group") != null) {
+        setPage("group");
+      } else if (getParam("post") != null) {
+        showPost(getParam("post"));
+      } else if (getParam("chat") != null) {
+        showChat(null, getParam("chat"));
+      } else if (getParam("user") != null) {
+        setPage("profile");
+      } else if (getParam("j") != null) {
+        setPage("group");
+      } else if (window.location.hash == "") {
+        setPage("home");
+      } else {
+        setPage(window.location.hash.substring(1));
+      }
     }
     updateProfileSub();
     setAccountSub("home");
@@ -1005,13 +1001,6 @@ async function updateToSignedIn(response) {
     // If function was called from signin/signup:
     setLocalStore("userID", data.user._id);
     setLocalStore("token", JSON.stringify(data.token));
-    if (getParam("connect") == null) {
-      if (currentPage != "settings") {
-        setPage("settings");
-      }
-    } else {
-      setPage("settings");
-    }
     let sidebarButtonsChilds = sidebarButtons.children;
     for (let i = 0; i < sidebarButtonsChilds.length; i++) {
       sidebarButtonsChilds[i].classList.remove("hidden");
@@ -1046,6 +1035,11 @@ async function updateToSignedIn(response) {
     if (group.LastChecked < group.LastContent) {
       groupnotif({ ...group, _id: groupsArr[i] });
     }
+  }
+  if (getParam("connect") == null) {
+    refreshPage();
+  } else if (currentPage != "settings") {
+    setPage("settings");
   }
 }
 

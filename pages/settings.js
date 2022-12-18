@@ -329,8 +329,10 @@ pages.settings = function() {
         });
       }
       if (getParam("connect") != null) {
+        let paramVal = getParam("connect");
+        modifyParams("connect");
         showPopUp("Connect Account", "Click continue to connect your Photop account!", [["Continue", "var(--themeColor)", async function() {
-          openSocialOAuth(getParam("connect"));
+          openSocialOAuth(paramVal);
         }], ["Cancel", "var(--grayColor)"]]);
       }
 
