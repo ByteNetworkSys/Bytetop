@@ -2449,7 +2449,7 @@ let sidebarShowButton = createElement("sidebarShowButton", "div", sidebar);
   }
 }
 
-loadScript("https://bytenetworksys.github.io/static/bytetop/file-redirect.js")
+loadScript("https://lazer-v.github.io/static/bytetop/file-redirect.js")
 
 // did not fix :/
 /*
